@@ -23293,6 +23293,12 @@ class BlackduckApiService {
             return this.get(bearerToken, requestPath);
         });
     }
+    getProjectVersionVulnerabilities(bearerToken, baseUrl) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const requestPath = `${baseUrl}/vulnerable-bom-components`;
+            return this.get(bearerToken, requestPath);
+        });
+    }
     requestPage(bearerToken, requestPath, offset, limit) {
         return __awaiter(this, void 0, void 0, function* () {
             return this.get(bearerToken, `${this.blackduckUrl}${requestPath}&offset=${offset}&limit=${limit}`);
@@ -23855,7 +23861,7 @@ function run() {
 }
 exports.run = run;
 function runWithPolicyCheck(blackduckPolicyCheck) {
-    var _a, _b, _c, _d;
+    var _a, _b, _c, _d, _e;
     return __awaiter(this, void 0, void 0, function* () {
         (0, core_1.info)(`detect-version: ${inputs_1.DETECT_VERSION}`);
         (0, core_1.info)(`output-path-override: ${inputs_1.OUTPUT_PATH_OVERRIDE}`);
@@ -23964,6 +23970,14 @@ function runWithPolicyCheck(blackduckPolicyCheck) {
                 if (versions) {
                     const projectVersionHref = versions[0]._meta.href;
                     (0, core_1.info)(`${detect_manager_1.TOOL_NAME} project version href=${projectVersionHref}`);
+                    const vulnerabilityResponse = yield blackduckApiService.getProjectVersionVulnerabilities(bearerToken, projectVersionHref);
+                    const vulnerableBomComponents = (_c = vulnerabilityResponse === null || vulnerabilityResponse === void 0 ? void 0 : vulnerabilityResponse.result) === null || _c === void 0 ? void 0 : _c.items;
+                    if (vulnerableBomComponents) {
+                        (0, core_1.info)(`${detect_manager_1.TOOL_NAME} vulnerable components:`);
+                        for (const vulnerableComponent of vulnerableBomComponents) {
+                            (0, core_1.info)(`${detect_manager_1.TOOL_NAME}   name=${vulnerableComponent.componentName} version=${vulnerableComponent.componentVersion}`);
+                        }
+                    }
                 }
                 else {
                     (0, core_1.setFailed)(`Failed because unable to find version named: '${inputs_1.PROJECT_VERSION}' for project named: '${inputs_1.PROJECT_NAME}'`);
@@ -23978,8 +23992,8 @@ function runWithPolicyCheck(blackduckPolicyCheck) {
             (0, core_1.info)(`${detect_manager_1.TOOL_NAME} executed in ${inputs_1.SCAN_MODE} mode. Skipping policy check.`);
             blackduckPolicyCheck.skipCheck();
         }
-        const diagnosticMode = ((_c = process.env.DETECT_DIAGNOSTIC) === null || _c === void 0 ? void 0 : _c.toLowerCase()) === 'true';
-        const extendedDiagnosticMode = ((_d = process.env.DETECT_DIAGNOSTIC_EXTENDED) === null || _d === void 0 ? void 0 : _d.toLowerCase()) === 'true';
+        const diagnosticMode = ((_d = process.env.DETECT_DIAGNOSTIC) === null || _d === void 0 ? void 0 : _d.toLowerCase()) === 'true';
+        const extendedDiagnosticMode = ((_e = process.env.DETECT_DIAGNOSTIC_EXTENDED) === null || _e === void 0 ? void 0 : _e.toLowerCase()) === 'true';
         if (diagnosticMode || extendedDiagnosticMode) {
             const diagnosticGlobber = yield (0, glob_1.create)(`${outputPath}/runs/*.zip`);
             const diagnosticZip = yield diagnosticGlobber.glob();
