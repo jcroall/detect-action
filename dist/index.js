@@ -23279,6 +23279,13 @@ class BlackduckApiService {
             return this.requestPage(bearerToken, requestPath, 0, limit);
         });
     }
+    getProjects(bearerToken, projectName, limit = 10) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const filter = `q=name%3A${projectName}`;
+            const requestPath = `/api/projects?${filter}`;
+            return this.requestPage(bearerToken, requestPath, 0, limit);
+        });
+    }
     requestPage(bearerToken, requestPath, offset, limit) {
         return __awaiter(this, void 0, void 0, function* () {
             return this.get(bearerToken, `${this.blackduckUrl}${requestPath}&offset=${offset}&limit=${limit}`);
@@ -23938,6 +23945,10 @@ function runWithPolicyCheck(blackduckPolicyCheck) {
         }
         else if (inputs_1.SCAN_MODE === 'CPP') {
             (0, core_1.info)(`${detect_manager_1.TOOL_NAME} executed in CPP mode. Beginning reporting for project name=${inputs_1.PROJECT_NAME} ad version=${inputs_1.PROJECT_VERSION}...`);
+            const blackduckApiService = new blackduck_api_1.BlackduckApiService(inputs_1.BLACKDUCK_URL, inputs_1.BLACKDUCK_API_TOKEN);
+            const bearerToken = yield blackduckApiService.getBearerToken();
+            const projectData = blackduckApiService.getProjects(bearerToken, inputs_1.PROJECT_NAME);
+            (0, core_1.info)(`Output: ${projectData}`);
             (0, core_1.info)(`${detect_manager_1.TOOL_NAME} No-op...`);
         }
         else {
