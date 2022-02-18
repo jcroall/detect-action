@@ -23279,11 +23279,11 @@ class BlackduckApiService {
             return this.requestPage(bearerToken, requestPath, 0, limit);
         });
     }
-    getProjects(bearerToken, projectName, limit = 10) {
+    getProjects(bearerToken, projectName) {
         return __awaiter(this, void 0, void 0, function* () {
             const filter = `q=name%3A${projectName}`;
             const requestPath = `/api/projects?${filter}`;
-            return this.requestPage(bearerToken, requestPath, 0, limit);
+            return this.get(bearerToken, requestPath);
         });
     }
     requestPage(bearerToken, requestPath, offset, limit) {
@@ -23848,7 +23848,7 @@ function run() {
 }
 exports.run = run;
 function runWithPolicyCheck(blackduckPolicyCheck) {
-    var _a, _b;
+    var _a, _b, _c;
     return __awaiter(this, void 0, void 0, function* () {
         (0, core_1.info)(`detect-version: ${inputs_1.DETECT_VERSION}`);
         (0, core_1.info)(`output-path-override: ${inputs_1.OUTPUT_PATH_OVERRIDE}`);
@@ -23947,16 +23947,20 @@ function runWithPolicyCheck(blackduckPolicyCheck) {
             (0, core_1.info)(`${detect_manager_1.TOOL_NAME} executed in CPP mode. Beginning reporting for project name=${inputs_1.PROJECT_NAME} ad version=${inputs_1.PROJECT_VERSION}...`);
             const blackduckApiService = new blackduck_api_1.BlackduckApiService(inputs_1.BLACKDUCK_URL, inputs_1.BLACKDUCK_API_TOKEN);
             const bearerToken = yield blackduckApiService.getBearerToken();
-            const projectData = blackduckApiService.getProjects(bearerToken, inputs_1.PROJECT_NAME);
-            (0, core_1.info)(`Output: ${projectData}`);
+            const projectResponse = yield blackduckApiService.getProjects(bearerToken, inputs_1.PROJECT_NAME);
+            const projects = (_a = projectResponse === null || projectResponse === void 0 ? void 0 : projectResponse.result) === null || _a === void 0 ? void 0 : _a.items;
+            if (projects) {
+                const projectHref = projects[0]._meta.href;
+                (0, core_1.info)(`${detect_manager_1.TOOL_NAME} project href=${projectHref}`);
+            }
             (0, core_1.info)(`${detect_manager_1.TOOL_NAME} No-op...`);
         }
         else {
             (0, core_1.info)(`${detect_manager_1.TOOL_NAME} executed in ${inputs_1.SCAN_MODE} mode. Skipping policy check.`);
             blackduckPolicyCheck.skipCheck();
         }
-        const diagnosticMode = ((_a = process.env.DETECT_DIAGNOSTIC) === null || _a === void 0 ? void 0 : _a.toLowerCase()) === 'true';
-        const extendedDiagnosticMode = ((_b = process.env.DETECT_DIAGNOSTIC_EXTENDED) === null || _b === void 0 ? void 0 : _b.toLowerCase()) === 'true';
+        const diagnosticMode = ((_b = process.env.DETECT_DIAGNOSTIC) === null || _b === void 0 ? void 0 : _b.toLowerCase()) === 'true';
+        const extendedDiagnosticMode = ((_c = process.env.DETECT_DIAGNOSTIC_EXTENDED) === null || _c === void 0 ? void 0 : _c.toLowerCase()) === 'true';
         if (diagnosticMode || extendedDiagnosticMode) {
             const diagnosticGlobber = yield (0, glob_1.create)(`${outputPath}/runs/*.zip`);
             const diagnosticZip = yield diagnosticGlobber.glob();
