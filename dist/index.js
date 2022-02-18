@@ -23286,6 +23286,13 @@ class BlackduckApiService {
             return this.get(bearerToken, requestPath);
         });
     }
+    getProjectVersions(bearerToken, baseUrl, versionName) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const filter = `q=versionName%3A${versionName}`;
+            const requestPath = `${baseUrl}/versions?${filter}`;
+            return this.get(bearerToken, requestPath);
+        });
+    }
     requestPage(bearerToken, requestPath, offset, limit) {
         return __awaiter(this, void 0, void 0, function* () {
             return this.get(bearerToken, `${this.blackduckUrl}${requestPath}&offset=${offset}&limit=${limit}`);
@@ -23848,7 +23855,7 @@ function run() {
 }
 exports.run = run;
 function runWithPolicyCheck(blackduckPolicyCheck) {
-    var _a, _b, _c;
+    var _a, _b, _c, _d;
     return __awaiter(this, void 0, void 0, function* () {
         (0, core_1.info)(`detect-version: ${inputs_1.DETECT_VERSION}`);
         (0, core_1.info)(`output-path-override: ${inputs_1.OUTPUT_PATH_OVERRIDE}`);
@@ -23952,6 +23959,18 @@ function runWithPolicyCheck(blackduckPolicyCheck) {
             if (projects) {
                 const projectHref = projects[0]._meta.href;
                 (0, core_1.info)(`${detect_manager_1.TOOL_NAME} project href=${projectHref}`);
+                const versionResponse = yield blackduckApiService.getProjectVersions(bearerToken, projectHref, inputs_1.PROJECT_VERSION);
+                const versions = (_b = versionResponse === null || versionResponse === void 0 ? void 0 : versionResponse.result) === null || _b === void 0 ? void 0 : _b.items;
+                if (versions) {
+                    const projectVersionHref = versions[0]._meta.href;
+                    (0, core_1.info)(`${detect_manager_1.TOOL_NAME} project version href=${projectHref}`);
+                }
+                else {
+                    (0, core_1.setFailed)(`Failed because unable to find version named: '${inputs_1.PROJECT_VERSION}' for project named: '${inputs_1.PROJECT_NAME}'`);
+                }
+            }
+            else {
+                (0, core_1.setFailed)(`Failed because unable to find project named: '${inputs_1.PROJECT_NAME}'`);
             }
             (0, core_1.info)(`${detect_manager_1.TOOL_NAME} No-op...`);
         }
@@ -23959,8 +23978,8 @@ function runWithPolicyCheck(blackduckPolicyCheck) {
             (0, core_1.info)(`${detect_manager_1.TOOL_NAME} executed in ${inputs_1.SCAN_MODE} mode. Skipping policy check.`);
             blackduckPolicyCheck.skipCheck();
         }
-        const diagnosticMode = ((_b = process.env.DETECT_DIAGNOSTIC) === null || _b === void 0 ? void 0 : _b.toLowerCase()) === 'true';
-        const extendedDiagnosticMode = ((_c = process.env.DETECT_DIAGNOSTIC_EXTENDED) === null || _c === void 0 ? void 0 : _c.toLowerCase()) === 'true';
+        const diagnosticMode = ((_c = process.env.DETECT_DIAGNOSTIC) === null || _c === void 0 ? void 0 : _c.toLowerCase()) === 'true';
+        const extendedDiagnosticMode = ((_d = process.env.DETECT_DIAGNOSTIC_EXTENDED) === null || _d === void 0 ? void 0 : _d.toLowerCase()) === 'true';
         if (diagnosticMode || extendedDiagnosticMode) {
             const diagnosticGlobber = yield (0, glob_1.create)(`${outputPath}/runs/*.zip`);
             const diagnosticZip = yield diagnosticGlobber.glob();
