@@ -8,3 +8,6 @@ export const SCAN_MODE = getInput('scan-mode').toUpperCase()
 export const FAIL_ON_ALL_POLICY_SEVERITIES = getBooleanInput('fail-on-all-policy-severities')
 export const OUTPUT_PATH_OVERRIDE = getInput('output-path-override')
 export const DETECT_TRUST_CERT = getInput('detect-trust-cert')
+export const PROJECT_NAME = getInput('project-name')
+export const PROJECT_VERSION = getInput('project-version')
+

@@ -27,6 +27,12 @@ inputs:
   detect-trust-cert:
     description: 'Acceptable Values: TRUE, FALSE. If TRUE, Detect will trust the Black Duck certificate even if the certificate is not in the keystore.'
     default: 'TRUE'
+  project-name:
+    description: 'Project name to look up in Black Duck Hub - only used for CPP mode'
+    required: false
+  project-version:
+    description: 'Project version to look up in Black Duck Hub - only used for CPP mode'
+    required: false
 runs:
   using: 'node12'
   main: 'dist/index.js'

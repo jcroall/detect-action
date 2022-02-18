@@ -8,7 +8,17 @@ import { commentOnPR } from './comment'
 import { POLICY_SEVERITY, SUCCESS } from './detect/exit-codes'
 import { TOOL_NAME, findOrDownloadDetect, runDetect } from './detect/detect-manager'
 import { isPullRequest } from './github/github-context'
-import { BLACKDUCK_API_TOKEN, BLACKDUCK_URL, DETECT_TRUST_CERT, DETECT_VERSION, FAIL_ON_ALL_POLICY_SEVERITIES, OUTPUT_PATH_OVERRIDE, SCAN_MODE } from './inputs'
+import {
+  BLACKDUCK_API_TOKEN,
+  BLACKDUCK_URL,
+  DETECT_TRUST_CERT,
+  DETECT_VERSION,
+  FAIL_ON_ALL_POLICY_SEVERITIES,
+  OUTPUT_PATH_OVERRIDE,
+  PROJECT_NAME,
+  PROJECT_VERSION,
+  SCAN_MODE
+} from './inputs'
 import { createRapidScanReportString } from './detect/reporting'
 import { uploadArtifact } from './github/upload-artifacts'
 import { CHECK_NAME } from './application-constants'
@@ -72,20 +82,22 @@ export async function runWithPolicyCheck(blackduckPolicyCheck: GitHubCheck): Pro
     return
   }
 
-  const detectExitCode = await runDetect(detectPath, detectArgs).catch(reason => {
-    setFailed(`Could not execute ${TOOL_NAME} ${DETECT_VERSION}: ${reason}`)
-  })
+  if (SCAN_MODE != 'CPP') {
+    const detectExitCode = await runDetect(detectPath, detectArgs).catch(reason => {
+      setFailed(`Could not execute ${TOOL_NAME} ${DETECT_VERSION}: ${reason}`)
+    })
 
-  if (detectExitCode === undefined) {
-    debug(`Could not determine ${TOOL_NAME} exit code. Canceling policy check.`)
-    blackduckPolicyCheck.cancelCheck()
-    return
-  } else if (detectExitCode > 0 && detectExitCode != POLICY_SEVERITY) {
-    setFailed(`Detect failed with exit code: ${detectExitCode}. Check the logs for more information.`)
-    return
+    if (detectExitCode === undefined) {
+      debug(`Could not determine ${TOOL_NAME} exit code. Canceling policy check.`)
+      blackduckPolicyCheck.cancelCheck()
+      return
+    } else if (detectExitCode > 0 && detectExitCode != POLICY_SEVERITY) {
+      setFailed(`Detect failed with exit code: ${detectExitCode}. Check the logs for more information.`)
+      return
+    }
+
+    info(`${TOOL_NAME} executed successfully.`)
   }
-
-  info(`${TOOL_NAME} executed successfully.`)
 
   let hasPolicyViolations = false
 
@@ -122,7 +134,15 @@ export async function runWithPolicyCheck(blackduckPolicyCheck: GitHubCheck): Pro
       blackduckPolicyCheck.passCheck('No components found that violate your Black Duck policies!', rapidScanReport)
     }
     info('Reporting complete.')
-  } else {
+  }
+  else if (SCAN_MODE === 'CPP') {
+    info(`${TOOL_NAME} executed in CPP mode. Beginning reporting for project name=${PROJECT_NAME} ad version=${PROJECT_VERSION}
+    
+    ...`)
+    info(`${TOOL_NAME} No-op...`)
+
+  }
+  else {
     info(`${TOOL_NAME} executed in ${SCAN_MODE} mode. Skipping policy check.`)
     blackduckPolicyCheck.skipCheck()
   }
