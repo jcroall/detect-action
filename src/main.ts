@@ -82,6 +82,8 @@ export async function runWithPolicyCheck(blackduckPolicyCheck: GitHubCheck): Pro
     return
   }
 
+  const detectExitCode = 0
+
   if (SCAN_MODE != 'CPP') {
     const detectExitCode = await runDetect(detectPath, detectArgs).catch(reason => {
       setFailed(`Could not execute ${TOOL_NAME} ${DETECT_VERSION}: ${reason}`)
@@ -115,6 +117,7 @@ export async function runWithPolicyCheck(blackduckPolicyCheck: GitHubCheck): Pro
     hasPolicyViolations = policyViolations.length > 0
     debug(`Policy Violations Present: ${hasPolicyViolations}`)
 
+    // @ts-ignore
     const failureConditionsMet = detectExitCode === POLICY_SEVERITY || FAIL_ON_ALL_POLICY_SEVERITIES
     const rapidScanReport = await createRapidScanReportString(policyViolations, hasPolicyViolations && failureConditionsMet)
 
@@ -136,9 +139,7 @@ export async function runWithPolicyCheck(blackduckPolicyCheck: GitHubCheck): Pro
     info('Reporting complete.')
   }
   else if (SCAN_MODE === 'CPP') {
-    info(`${TOOL_NAME} executed in CPP mode. Beginning reporting for project name=${PROJECT_NAME} ad version=${PROJECT_VERSION}
-    
-    ...`)
+    info(`${TOOL_NAME} executed in CPP mode. Beginning reporting for project name=${PROJECT_NAME} ad version=${PROJECT_VERSION}...`)
     info(`${TOOL_NAME} No-op...`)
 
   }
