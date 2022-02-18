@@ -23963,7 +23963,7 @@ function runWithPolicyCheck(blackduckPolicyCheck) {
                 const versions = (_b = versionResponse === null || versionResponse === void 0 ? void 0 : versionResponse.result) === null || _b === void 0 ? void 0 : _b.items;
                 if (versions) {
                     const projectVersionHref = versions[0]._meta.href;
-                    (0, core_1.info)(`${detect_manager_1.TOOL_NAME} project version href=${projectHref}`);
+                    (0, core_1.info)(`${detect_manager_1.TOOL_NAME} project version href=${projectVersionHref}`);
                 }
                 else {
                     (0, core_1.setFailed)(`Failed because unable to find version named: '${inputs_1.PROJECT_VERSION}' for project named: '${inputs_1.PROJECT_NAME}'`);
