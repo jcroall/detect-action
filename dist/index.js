@@ -23295,7 +23295,7 @@ class BlackduckApiService {
     }
     getProjectVersionVulnerabilities(bearerToken, baseUrl) {
         return __awaiter(this, void 0, void 0, function* () {
-            const requestPath = `${baseUrl}/vulnerable-bom-components`;
+            const requestPath = `${baseUrl}/vulnerable-bom-components?limit=1000`;
             return this.get(bearerToken, requestPath);
         });
     }
