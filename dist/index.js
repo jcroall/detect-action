@@ -23780,7 +23780,7 @@ exports.uploadArtifact = uploadArtifact;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.DETECT_TRUST_CERT = exports.OUTPUT_PATH_OVERRIDE = exports.FAIL_ON_ALL_POLICY_SEVERITIES = exports.SCAN_MODE = exports.DETECT_VERSION = exports.BLACKDUCK_API_TOKEN = exports.BLACKDUCK_URL = exports.GITHUB_TOKEN = void 0;
+exports.PROJECT_VERSION = exports.PROJECT_NAME = exports.DETECT_TRUST_CERT = exports.OUTPUT_PATH_OVERRIDE = exports.FAIL_ON_ALL_POLICY_SEVERITIES = exports.SCAN_MODE = exports.DETECT_VERSION = exports.BLACKDUCK_API_TOKEN = exports.BLACKDUCK_URL = exports.GITHUB_TOKEN = void 0;
 const core_1 = __nccwpck_require__(5127);
 exports.GITHUB_TOKEN = (0, core_1.getInput)('github-token');
 exports.BLACKDUCK_URL = (0, core_1.getInput)('blackduck-url');
@@ -23790,6 +23790,8 @@ exports.SCAN_MODE = (0, core_1.getInput)('scan-mode').toUpperCase();
 exports.FAIL_ON_ALL_POLICY_SEVERITIES = (0, core_1.getBooleanInput)('fail-on-all-policy-severities');
 exports.OUTPUT_PATH_OVERRIDE = (0, core_1.getInput)('output-path-override');
 exports.DETECT_TRUST_CERT = (0, core_1.getInput)('detect-trust-cert');
+exports.PROJECT_NAME = (0, core_1.getInput)('project-name');
+exports.PROJECT_VERSION = (0, core_1.getInput)('project-version');
 
 
 /***/ }),
@@ -23930,8 +23932,10 @@ function runWithPolicyCheck(blackduckPolicyCheck) {
             }
             (0, core_1.info)('Reporting complete.');
         }
-        else if (inputs_1.SCAN_MODE === 'INTELLIGENT') {
-            (0, core_1.info)(`${detect_manager_1.TOOL_NAME} executed in INTELLIGENT mode. Beginning reporting...`);
+        else if (inputs_1.SCAN_MODE === 'CPP') {
+            (0, core_1.info)(`${detect_manager_1.TOOL_NAME} executed in CPP mode. Beginning reporting for project name=${inputs_1.PROJECT_NAME} ad version=${inputs_1.PROJECT_VERSION}
+    
+    ...`);
             (0, core_1.info)(`${detect_manager_1.TOOL_NAME} No-op...`);
         }
         else {
