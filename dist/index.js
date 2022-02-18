@@ -23975,7 +23975,7 @@ function runWithPolicyCheck(blackduckPolicyCheck) {
                     if (vulnerableBomComponents) {
                         (0, core_1.info)(`${detect_manager_1.TOOL_NAME} vulnerable components:`);
                         for (const vulnerableComponent of vulnerableBomComponents) {
-                            (0, core_1.info)(`${detect_manager_1.TOOL_NAME}   name=${vulnerableComponent.componentName} version=${vulnerableComponent.componentVersion}`);
+                            (0, core_1.info)(`${detect_manager_1.TOOL_NAME}   name=${vulnerableComponent.componentName} version=${vulnerableComponent.componentVersionName} vuln=${vulnerableComponent.vulnerabilityWithRemediation.vulnerabilityName}`);
                         }
                     }
                 }
