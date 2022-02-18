@@ -23937,9 +23937,7 @@ function runWithPolicyCheck(blackduckPolicyCheck) {
             (0, core_1.info)('Reporting complete.');
         }
         else if (inputs_1.SCAN_MODE === 'CPP') {
-            (0, core_1.info)(`${detect_manager_1.TOOL_NAME} executed in CPP mode. Beginning reporting for project name=${inputs_1.PROJECT_NAME} ad version=${inputs_1.PROJECT_VERSION}
-    
-    ...`);
+            (0, core_1.info)(`${detect_manager_1.TOOL_NAME} executed in CPP mode. Beginning reporting for project name=${inputs_1.PROJECT_NAME} ad version=${inputs_1.PROJECT_VERSION}...`);
             (0, core_1.info)(`${detect_manager_1.TOOL_NAME} No-op...`);
         }
         else {
