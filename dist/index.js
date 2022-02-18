@@ -23888,19 +23888,22 @@ function runWithPolicyCheck(blackduckPolicyCheck) {
             blackduckPolicyCheck.cancelCheck();
             return;
         }
-        const detectExitCode = yield (0, detect_manager_1.runDetect)(detectPath, detectArgs).catch(reason => {
-            (0, core_1.setFailed)(`Could not execute ${detect_manager_1.TOOL_NAME} ${inputs_1.DETECT_VERSION}: ${reason}`);
-        });
-        if (detectExitCode === undefined) {
-            (0, core_1.debug)(`Could not determine ${detect_manager_1.TOOL_NAME} exit code. Canceling policy check.`);
-            blackduckPolicyCheck.cancelCheck();
-            return;
+        const detectExitCode = 0;
+        if (inputs_1.SCAN_MODE != 'CPP') {
+            const detectExitCode = yield (0, detect_manager_1.runDetect)(detectPath, detectArgs).catch(reason => {
+                (0, core_1.setFailed)(`Could not execute ${detect_manager_1.TOOL_NAME} ${inputs_1.DETECT_VERSION}: ${reason}`);
+            });
+            if (detectExitCode === undefined) {
+                (0, core_1.debug)(`Could not determine ${detect_manager_1.TOOL_NAME} exit code. Canceling policy check.`);
+                blackduckPolicyCheck.cancelCheck();
+                return;
+            }
+            else if (detectExitCode > 0 && detectExitCode != exit_codes_1.POLICY_SEVERITY) {
+                (0, core_1.setFailed)(`Detect failed with exit code: ${detectExitCode}. Check the logs for more information.`);
+                return;
+            }
+            (0, core_1.info)(`${detect_manager_1.TOOL_NAME} executed successfully.`);
         }
-        else if (detectExitCode > 0 && detectExitCode != exit_codes_1.POLICY_SEVERITY) {
-            (0, core_1.setFailed)(`Detect failed with exit code: ${detectExitCode}. Check the logs for more information.`);
-            return;
-        }
-        (0, core_1.info)(`${detect_manager_1.TOOL_NAME} executed successfully.`);
         let hasPolicyViolations = false;
         if (inputs_1.SCAN_MODE === 'RAPID') {
             (0, core_1.info)(`${detect_manager_1.TOOL_NAME} executed in RAPID mode. Beginning reporting...`);
@@ -23912,6 +23915,7 @@ function runWithPolicyCheck(blackduckPolicyCheck) {
             const policyViolations = JSON.parse(rawdata.toString());
             hasPolicyViolations = policyViolations.length > 0;
             (0, core_1.debug)(`Policy Violations Present: ${hasPolicyViolations}`);
+            // @ts-ignore
             const failureConditionsMet = detectExitCode === exit_codes_1.POLICY_SEVERITY || inputs_1.FAIL_ON_ALL_POLICY_SEVERITIES;
             const rapidScanReport = yield (0, reporting_1.createRapidScanReportString)(policyViolations, hasPolicyViolations && failureConditionsMet);
             if ((0, github_context_1.isPullRequest)()) {
