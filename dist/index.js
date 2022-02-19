@@ -23197,6 +23197,7 @@ const Handlers_1 = __nccwpck_require__(8520);
 const HttpClient_1 = __nccwpck_require__(8209);
 const RestClient_1 = __nccwpck_require__(8649);
 const application_constants_1 = __nccwpck_require__(1354);
+const detect_manager_1 = __nccwpck_require__(8082);
 class BlackduckApiService {
     constructor(blackduckUrl, blackduckApiToken) {
         this.blackduckUrl = cleanUrl(blackduckUrl);
@@ -23305,11 +23306,15 @@ class BlackduckApiService {
             //const itemArray = <IBlackduckItemArray<IIntelligentScanResults>>{}
             //const restResponse = <IRestResponse<IBlackduckItemArray<IIntelligentScanResults>>>{}
             const items = {};
+            (0, core_1.info)(`${detect_manager_1.TOOL_NAME} Creating vuln`);
             const vuln = {};
             vuln.name = "VULN-1";
+            (0, core_1.info)(`${detect_manager_1.TOOL_NAME} Creating lic`);
             const lic = {};
             lic.licenseName = "LICENSE-1";
+            lic._meta;
             lic._meta.href = "http://link-to-lic";
+            (0, core_1.info)(`${detect_manager_1.TOOL_NAME} Creating policy violation`);
             const policyViolation = {};
             policyViolation.componentName = "Component1";
             policyViolation.versionName = "Version1";
@@ -23990,6 +23995,8 @@ function runWithPolicyCheck(blackduckPolicyCheck) {
             const bearerToken = yield blackduckApiService.getBearerToken();
             // TODO: Can there be more than one results location?
             const policyViolations = yield blackduckApiService.getPolicyViolations(bearerToken, intelligentScanStatus.projectName, intelligentScanStatus.projectVersion, intelligentScanStatus.results[0].location);
+            const string = JSON.stringify(policyViolations, null, 4);
+            (0, core_1.info)(`${detect_manager_1.TOOL_NAME} string=${string}`);
             const failureConditionsMet = detectExitCode === exit_codes_1.POLICY_SEVERITY || inputs_1.FAIL_ON_ALL_POLICY_SEVERITIES;
             const rapidScanReport = yield (0, reporting_1.createRapidScanReportString)(policyViolations, hasPolicyViolations && failureConditionsMet);
             (0, core_1.info)(`${detect_manager_1.TOOL_NAME} rapidScanReport=${rapidScanReport}`);
