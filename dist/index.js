@@ -23861,7 +23861,7 @@ function run() {
 }
 exports.run = run;
 function runWithPolicyCheck(blackduckPolicyCheck) {
-    var _a, _b, _c, _d, _e;
+    var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
         (0, core_1.info)(`detect-version: ${inputs_1.DETECT_VERSION}`);
         (0, core_1.info)(`output-path-override: ${inputs_1.OUTPUT_PATH_OVERRIDE}`);
@@ -23908,22 +23908,19 @@ function runWithPolicyCheck(blackduckPolicyCheck) {
             blackduckPolicyCheck.cancelCheck();
             return;
         }
-        const detectExitCode = 0;
-        if (inputs_1.SCAN_MODE != 'CPP') {
-            const detectExitCode = yield (0, detect_manager_1.runDetect)(detectPath, detectArgs).catch(reason => {
-                (0, core_1.setFailed)(`Could not execute ${detect_manager_1.TOOL_NAME} ${inputs_1.DETECT_VERSION}: ${reason}`);
-            });
-            if (detectExitCode === undefined) {
-                (0, core_1.debug)(`Could not determine ${detect_manager_1.TOOL_NAME} exit code. Canceling policy check.`);
-                blackduckPolicyCheck.cancelCheck();
-                return;
-            }
-            else if (detectExitCode > 0 && detectExitCode != exit_codes_1.POLICY_SEVERITY) {
-                (0, core_1.setFailed)(`Detect failed with exit code: ${detectExitCode}. Check the logs for more information.`);
-                return;
-            }
-            (0, core_1.info)(`${detect_manager_1.TOOL_NAME} executed successfully.`);
+        const detectExitCode = yield (0, detect_manager_1.runDetect)(detectPath, detectArgs).catch(reason => {
+            (0, core_1.setFailed)(`Could not execute ${detect_manager_1.TOOL_NAME} ${inputs_1.DETECT_VERSION}: ${reason}`);
+        });
+        if (detectExitCode === undefined) {
+            (0, core_1.debug)(`Could not determine ${detect_manager_1.TOOL_NAME} exit code. Canceling policy check.`);
+            blackduckPolicyCheck.cancelCheck();
+            return;
         }
+        else if (detectExitCode > 0 && detectExitCode != exit_codes_1.POLICY_SEVERITY) {
+            (0, core_1.setFailed)(`Detect failed with exit code: ${detectExitCode}. Check the logs for more information.`);
+            return;
+        }
+        (0, core_1.info)(`${detect_manager_1.TOOL_NAME} executed successfully.`);
         let hasPolicyViolations = false;
         if (inputs_1.SCAN_MODE === 'RAPID') {
             (0, core_1.info)(`${detect_manager_1.TOOL_NAME} executed in RAPID mode. Beginning reporting...`);
@@ -23956,44 +23953,57 @@ function runWithPolicyCheck(blackduckPolicyCheck) {
             }
             (0, core_1.info)('Reporting complete.');
         }
-        else if (inputs_1.SCAN_MODE === 'CPP') {
-            (0, core_1.info)(`${detect_manager_1.TOOL_NAME} executed in CPP mode. Beginning reporting for project name=${inputs_1.PROJECT_NAME} ad version=${inputs_1.PROJECT_VERSION}...`);
-            const blackduckApiService = new blackduck_api_1.BlackduckApiService(inputs_1.BLACKDUCK_URL, inputs_1.BLACKDUCK_API_TOKEN);
-            const bearerToken = yield blackduckApiService.getBearerToken();
-            const projectResponse = yield blackduckApiService.getProjects(bearerToken, inputs_1.PROJECT_NAME);
-            const projects = (_a = projectResponse === null || projectResponse === void 0 ? void 0 : projectResponse.result) === null || _a === void 0 ? void 0 : _a.items;
+        else if (inputs_1.SCAN_MODE === 'INTELLIGENT') {
+            (0, core_1.info)(`${detect_manager_1.TOOL_NAME} executed in CPP mode. Beginning reporting...`);
+            //for project name=${PROJECT_NAME} ad version=${PROJECT_VERSION}...`)
+            const jsonGlobber = yield (0, glob_1.create)(`${outputPath}/runs/*/status/status.json`);
+            const scanJsonPaths = yield jsonGlobber.glob();
+            (0, upload_artifacts_1.uploadArtifact)('Intelligent Scan JSON', outputPath, scanJsonPaths);
+            const scanJsonPath = scanJsonPaths[0];
+            const rawdata = fs_1.default.readFileSync(scanJsonPath);
+            const intelligentScanResults = JSON.parse(rawdata.toString());
+            (0, core_1.info)(`${detect_manager_1.TOOL_NAME} projectName=${intelligentScanResults.projectName}`);
+            (0, core_1.info)(`${detect_manager_1.TOOL_NAME} projectVersion=${intelligentScanResults.projectVersion}`);
+            (0, core_1.info)(`${detect_manager_1.TOOL_NAME} results location=${intelligentScanResults.results[0].location}`);
+            /*
+            const blackduckApiService = new BlackduckApiService(BLACKDUCK_URL, BLACKDUCK_API_TOKEN)
+            const bearerToken = await blackduckApiService.getBearerToken()
+            const projectResponse = await blackduckApiService.getProjects(bearerToken, PROJECT_NAME)
+            const projects = projectResponse?.result?.items
             if (projects) {
-                const projectHref = projects[0]._meta.href;
-                (0, core_1.info)(`${detect_manager_1.TOOL_NAME} project href=${projectHref}`);
-                const versionResponse = yield blackduckApiService.getProjectVersions(bearerToken, projectHref, inputs_1.PROJECT_VERSION);
-                const versions = (_b = versionResponse === null || versionResponse === void 0 ? void 0 : versionResponse.result) === null || _b === void 0 ? void 0 : _b.items;
-                if (versions) {
-                    const projectVersionHref = versions[0]._meta.href;
-                    (0, core_1.info)(`${detect_manager_1.TOOL_NAME} project version href=${projectVersionHref}`);
-                    const vulnerabilityResponse = yield blackduckApiService.getProjectVersionVulnerabilities(bearerToken, projectVersionHref);
-                    const vulnerableBomComponents = (_c = vulnerabilityResponse === null || vulnerabilityResponse === void 0 ? void 0 : vulnerabilityResponse.result) === null || _c === void 0 ? void 0 : _c.items;
-                    if (vulnerableBomComponents) {
-                        (0, core_1.info)(`${detect_manager_1.TOOL_NAME} vulnerable components:`);
-                        for (const vulnerableComponent of vulnerableBomComponents) {
-                            (0, core_1.info)(`${detect_manager_1.TOOL_NAME}   name=${vulnerableComponent.componentName} version=${vulnerableComponent.componentVersionName} vuln=${vulnerableComponent.vulnerabilityWithRemediation.vulnerabilityName}`);
-                        }
-                    }
+              const projectHref = projects[0]._meta.href
+              info(`${TOOL_NAME} project href=${projectHref}`)
+        
+              const versionResponse = await blackduckApiService.getProjectVersions(bearerToken, projectHref, PROJECT_VERSION)
+              const versions = versionResponse?.result?.items
+              if (versions) {
+                const projectVersionHref = versions[0]._meta.href
+                info(`${TOOL_NAME} project version href=${projectVersionHref}`)
+        
+                const vulnerabilityResponse = await blackduckApiService.getProjectVersionVulnerabilities(bearerToken, projectVersionHref)
+                const vulnerableBomComponents = vulnerabilityResponse?.result?.items
+                if (vulnerableBomComponents) {
+                  info(`${TOOL_NAME} vulnerable components:`)
+                  for (const vulnerableComponent of vulnerableBomComponents) {
+                    info(`${TOOL_NAME}   name=${vulnerableComponent.componentName} version=${vulnerableComponent.componentVersionName} vuln=${vulnerableComponent.vulnerabilityWithRemediation.vulnerabilityName}`)
+                  }
                 }
-                else {
-                    (0, core_1.setFailed)(`Failed because unable to find version named: '${inputs_1.PROJECT_VERSION}' for project named: '${inputs_1.PROJECT_NAME}'`);
-                }
+              } else {
+                setFailed(`Failed because unable to find version named: '${PROJECT_VERSION}' for project named: '${PROJECT_NAME}'`)
+              }
+        
+            } else {
+              setFailed(`Failed because unable to find project named: '${PROJECT_NAME}'`)
             }
-            else {
-                (0, core_1.setFailed)(`Failed because unable to find project named: '${inputs_1.PROJECT_NAME}'`);
-            }
-            (0, core_1.info)(`${detect_manager_1.TOOL_NAME} No-op...`);
+            info(`${TOOL_NAME} No-op...`)
+            */
         }
         else {
             (0, core_1.info)(`${detect_manager_1.TOOL_NAME} executed in ${inputs_1.SCAN_MODE} mode. Skipping policy check.`);
             blackduckPolicyCheck.skipCheck();
         }
-        const diagnosticMode = ((_d = process.env.DETECT_DIAGNOSTIC) === null || _d === void 0 ? void 0 : _d.toLowerCase()) === 'true';
-        const extendedDiagnosticMode = ((_e = process.env.DETECT_DIAGNOSTIC_EXTENDED) === null || _e === void 0 ? void 0 : _e.toLowerCase()) === 'true';
+        const diagnosticMode = ((_a = process.env.DETECT_DIAGNOSTIC) === null || _a === void 0 ? void 0 : _a.toLowerCase()) === 'true';
+        const extendedDiagnosticMode = ((_b = process.env.DETECT_DIAGNOSTIC_EXTENDED) === null || _b === void 0 ? void 0 : _b.toLowerCase()) === 'true';
         if (diagnosticMode || extendedDiagnosticMode) {
             const diagnosticGlobber = yield (0, glob_1.create)(`${outputPath}/runs/*.zip`);
             const diagnosticZip = yield diagnosticGlobber.glob();
