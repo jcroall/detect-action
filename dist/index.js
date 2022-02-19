@@ -23631,19 +23631,33 @@ function createRapidScanReportString(policyViolations, policyCheckWillFail) {
 }
 exports.createRapidScanReportString = createRapidScanReportString;
 function createIntelligentScanReportString(componentsUrl, projectName, projectVersion, policyCheckWillFail) {
-    var _a, _b;
+    var _a, _b, _c;
     return __awaiter(this, void 0, void 0, function* () {
         const blackduckApiService = new blackduck_api_1.BlackduckApiService(inputs_1.BLACKDUCK_URL, inputs_1.BLACKDUCK_API_TOKEN);
         const bearerToken = yield blackduckApiService.getBearerToken();
+        var baseUrl = componentsUrl;
+        baseUrl.replace(/\/components$/, "");
+        const vulnerabilitesResponse = yield blackduckApiService.getProjectVersionVulnerabilities(bearerToken, baseUrl);
+        const vulnerabilities = (_a = vulnerabilitesResponse === null || vulnerabilitesResponse === void 0 ? void 0 : vulnerabilitesResponse.result) === null || _a === void 0 ? void 0 : _a.items;
+        let vulns_by_component = new Map();
+        if (vulnerabilities) {
+            for (const vulnerability of vulnerabilities) {
+                (0, core_1.info)(`${detect_manager_1.TOOL_NAME} Vulnerability in component=${vulnerability.componentName} license=${vulnerability.license} vuln=${vulnerability.vulnerabilityWithRemediation.vulnerabilityName} score=${vulnerability.vulnerabilityWithRemediation.overallScore}`);
+                if (!vulns_by_component.get(vulnerability.componentName)) {
+                    vulns_by_component.set(vulnerability.componentName, new Array());
+                }
+                vulns_by_component.get(vulnerability.componentName).push(vulnerability);
+            }
+        }
         const componentsResponse = yield blackduckApiService.getComponents(bearerToken, componentsUrl);
-        const components = (_a = componentsResponse === null || componentsResponse === void 0 ? void 0 : componentsResponse.result) === null || _a === void 0 ? void 0 : _a.items;
+        const components = (_b = componentsResponse === null || componentsResponse === void 0 ? void 0 : componentsResponse.result) === null || _b === void 0 ? void 0 : _b.items;
         if (components) {
             for (const component of components) {
                 (0, core_1.info)(`${detect_manager_1.TOOL_NAME} componentName=${component.componentName} policyStatus=${component.policyStatus}`);
                 if (component.policyStatus === "IN_VIOLATION") {
                     (0, core_1.info)(`${detect_manager_1.TOOL_NAME}   Policy violation:`);
                     const policyRulesResponse = yield blackduckApiService.getPolicyRules(bearerToken, component._meta.href + "/policy-rules");
-                    const policyRules = (_b = policyRulesResponse === null || policyRulesResponse === void 0 ? void 0 : policyRulesResponse.result) === null || _b === void 0 ? void 0 : _b.items;
+                    const policyRules = (_c = policyRulesResponse === null || policyRulesResponse === void 0 ? void 0 : policyRulesResponse.result) === null || _c === void 0 ? void 0 : _c.items;
                     if (policyRules) {
                         component.violatingPolicyNames = new Array();
                         for (const policyRule of policyRules) {
