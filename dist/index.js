@@ -23990,7 +23990,7 @@ function runWithPolicyCheck(blackduckPolicyCheck) {
             const bearerToken = yield blackduckApiService.getBearerToken();
             // TODO: Can there be more than one results location?
             const policyViolations = yield blackduckApiService.getPolicyViolations(bearerToken, intelligentScanStatus.projectName, intelligentScanStatus.projectVersion, intelligentScanStatus.results[0].location);
-            (0, core_1.info)(`${detect_manager_1.TOOL_NAME} componentIdentifier=${(_a = policyViolations.result) === null || _a === void 0 ? void 0 : _a.totalCount}`);
+            (0, core_1.info)(`${detect_manager_1.TOOL_NAME} totalCount=${(_a = policyViolations.result) === null || _a === void 0 ? void 0 : _a.totalCount}`);
             /*
             const blackduckApiService = new BlackduckApiService(BLACKDUCK_URL, BLACKDUCK_API_TOKEN)
             const bearerToken = await blackduckApiService.getBearerToken()
