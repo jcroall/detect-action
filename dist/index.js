@@ -23645,6 +23645,7 @@ function createIntelligentScanReportString(componentsUrl, projectName, projectVe
                     const policyRulesResponse = yield blackduckApiService.getPolicyRules(bearerToken, component._meta.href + "/policy-rules");
                     const policyRules = (_b = policyRulesResponse === null || policyRulesResponse === void 0 ? void 0 : policyRulesResponse.result) === null || _b === void 0 ? void 0 : _b.items;
                     if (policyRules) {
+                        component.violatingPolicyNames = new Array();
                         for (const policyRule of policyRules) {
                             (0, core_1.info)(`${detect_manager_1.TOOL_NAME}     name=${policyRule.name} severity=${policyRule.severity}`);
                             component.violatingPolicyNames.push(policyRule.name);
