@@ -23304,51 +23304,12 @@ class BlackduckApiService {
             const requestPath = `${componentsUrl}?limit=1000`;
             return this.get(bearerToken, requestPath);
             //const policyViolation = <IIntelligentScanResults>{}
-            //const itemArray = <IBlackduckItemArray<IIntelligentScanResults>>{}
-            //const restResponse = <IRestResponse<IBlackduckItemArray<IIntelligentScanResults>>>{}
-            /*
-            const items = <IRapidScanResults[]>{}
-        
-            info(`${TOOL_NAME} Creating vuln`)
-        
-            const vuln = <IRapidScanVulnerability>{}
-            vuln.name = "VULN-1"
-        
-            info(`${TOOL_NAME} Creating lic`)
-        
-            class RapidScanLicense implements IRapidScanLicense {
-              licenseName = "";
-              _meta = { href : "" }
-            }
-            const lic = new RapidScanLicense()
-            lic.licenseName = "LICENSE-1"
-            lic._meta.href = "http://link-to-lic"
-        
-            info(`${TOOL_NAME} Creating policy violation`)
-        
-            class RapidScanResults implements IRapidScanResults {
-              componentIdentifier = ""
-              componentName = ""
-              versionName = ""
-              violatingPolicyNames = []
-              policyViolationVulnerabilities = []
-              policyViolationLicenses = []
-              _meta = { href : "" }
-            }
-        
-            const policyViolation = new RapidScanResults()
-        
-            policyViolation.componentName = "Component1"
-            policyViolation.versionName = "Version1"
-            policyViolation.violatingPolicyNames = [ "POLICY1"] as string[]
-            policyViolation.policyViolationVulnerabilities = [ vuln ]
-            policyViolation.policyViolationLicenses = [ lic ]
-            policyViolation._meta.href = "http://link-to-api"
-        
-            items.push(policyViolation)
-        
-            return items
-            */
+        });
+    }
+    getPolicyRules(bearerToken, policuRulesUrl) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const requestPath = `${policuRulesUrl}?limit=1000`;
+            return this.get(bearerToken, requestPath);
         });
     }
     requestPage(bearerToken, requestPath, offset, limit) {
@@ -23670,7 +23631,7 @@ function createRapidScanReportString(policyViolations, policyCheckWillFail) {
 }
 exports.createRapidScanReportString = createRapidScanReportString;
 function createIntelligentScanReportString(componentsUrl, projectName, projectVersion, policyCheckWillFail) {
-    var _a;
+    var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
         const blackduckApiService = new blackduck_api_1.BlackduckApiService(inputs_1.BLACKDUCK_URL, inputs_1.BLACKDUCK_API_TOKEN);
         const bearerToken = yield blackduckApiService.getBearerToken();
@@ -23678,7 +23639,18 @@ function createIntelligentScanReportString(componentsUrl, projectName, projectVe
         const components = (_a = componentsResponse === null || componentsResponse === void 0 ? void 0 : componentsResponse.result) === null || _a === void 0 ? void 0 : _a.items;
         if (components) {
             for (const component of components) {
-                (0, core_1.info)(`${detect_manager_1.TOOL_NAME} componentName=${component.componentName}`);
+                (0, core_1.info)(`${detect_manager_1.TOOL_NAME} componentName=${component.componentName} policyStatus=${component.policyStatus}`);
+                if (component.policyStatus === "IN_VIOLATION") {
+                    (0, core_1.info)(`${detect_manager_1.TOOL_NAME}   Policy violation:`);
+                    const policyRulesResponse = yield blackduckApiService.getPolicyRules(bearerToken, component._meta.href + "/policy-rules");
+                    const policyRules = (_b = policyRulesResponse === null || policyRulesResponse === void 0 ? void 0 : policyRulesResponse.result) === null || _b === void 0 ? void 0 : _b.items;
+                    if (policyRules) {
+                        for (const policyRule of policyRules) {
+                            (0, core_1.info)(`${detect_manager_1.TOOL_NAME}     name=${policyRule.name} severity=${policyRule.severity}`);
+                            component.violatingPolicyNames.push(policyRule.name);
+                        }
+                    }
+                }
             }
         }
         /*
