@@ -23299,6 +23299,24 @@ class BlackduckApiService {
             return this.get(bearerToken, requestPath);
         });
     }
+    getPolicyViolations(bearerToken, componentsUrl, projectName, projectVersion) {
+        var _a, _b, _c;
+        return __awaiter(this, void 0, void 0, function* () {
+            //const policyViolation = <IIntelligentScanResults>{}
+            const itemArray = {};
+            const restResponse = {};
+            const policyViolation = {};
+            policyViolation.componentIdentifier = "maven:test:1234";
+            (_a = restResponse.result) === null || _a === void 0 ? void 0 : _a.items.push(policyViolation);
+            const policyViolation2 = {};
+            policyViolation2.componentIdentifier = "maven:test:1234";
+            (_b = restResponse.result) === null || _b === void 0 ? void 0 : _b.items.push(policyViolation2);
+            const policyViolation3 = {};
+            policyViolation3.componentIdentifier = "maven:test:1234";
+            (_c = restResponse.result) === null || _c === void 0 ? void 0 : _c.items.push(policyViolation3);
+            return restResponse;
+        });
+    }
     requestPage(bearerToken, requestPath, offset, limit) {
         return __awaiter(this, void 0, void 0, function* () {
             return this.get(bearerToken, `${this.blackduckUrl}${requestPath}&offset=${offset}&limit=${limit}`);
@@ -23861,7 +23879,7 @@ function run() {
 }
 exports.run = run;
 function runWithPolicyCheck(blackduckPolicyCheck) {
-    var _a, _b;
+    var _a, _b, _c;
     return __awaiter(this, void 0, void 0, function* () {
         (0, core_1.info)(`detect-version: ${inputs_1.DETECT_VERSION}`);
         (0, core_1.info)(`output-path-override: ${inputs_1.OUTPUT_PATH_OVERRIDE}`);
@@ -23964,10 +23982,15 @@ function runWithPolicyCheck(blackduckPolicyCheck) {
             //uploadArtifact('Intelligent Scan JSON', outputPath, scanJsonPaths)
             const scanJsonPath = scanJsonPaths[0];
             const rawdata = fs_1.default.readFileSync(scanJsonPath);
-            const intelligentScanResults = JSON.parse(rawdata.toString());
-            (0, core_1.info)(`${detect_manager_1.TOOL_NAME} projectName=${intelligentScanResults.projectName}`);
-            (0, core_1.info)(`${detect_manager_1.TOOL_NAME} projectVersion=${intelligentScanResults.projectVersion}`);
-            (0, core_1.info)(`${detect_manager_1.TOOL_NAME} results location=${intelligentScanResults.results[0].location}`);
+            const intelligentScanStatus = JSON.parse(rawdata.toString());
+            (0, core_1.info)(`${detect_manager_1.TOOL_NAME} projectName=${intelligentScanStatus.projectName}`);
+            (0, core_1.info)(`${detect_manager_1.TOOL_NAME} projectVersion=${intelligentScanStatus.projectVersion}`);
+            (0, core_1.info)(`${detect_manager_1.TOOL_NAME} results location=${intelligentScanStatus.results[0].location}`);
+            const blackduckApiService = new blackduck_api_1.BlackduckApiService(inputs_1.BLACKDUCK_URL, inputs_1.BLACKDUCK_API_TOKEN);
+            const bearerToken = yield blackduckApiService.getBearerToken();
+            // TODO: Can there be more than one results location?
+            const policyViolations = yield blackduckApiService.getPolicyViolations(bearerToken, intelligentScanStatus.projectName, intelligentScanStatus.projectVersion, intelligentScanStatus.results[0].location);
+            (0, core_1.info)(`${detect_manager_1.TOOL_NAME} componentIdentifier=${(_a = policyViolations.result) === null || _a === void 0 ? void 0 : _a.totalCount}`);
             /*
             const blackduckApiService = new BlackduckApiService(BLACKDUCK_URL, BLACKDUCK_API_TOKEN)
             const bearerToken = await blackduckApiService.getBearerToken()
@@ -23976,13 +23999,13 @@ function runWithPolicyCheck(blackduckPolicyCheck) {
             if (projects) {
               const projectHref = projects[0]._meta.href
               info(`${TOOL_NAME} project href=${projectHref}`)
-        
+      
               const versionResponse = await blackduckApiService.getProjectVersions(bearerToken, projectHref, PROJECT_VERSION)
               const versions = versionResponse?.result?.items
               if (versions) {
                 const projectVersionHref = versions[0]._meta.href
                 info(`${TOOL_NAME} project version href=${projectVersionHref}`)
-        
+      
                 const vulnerabilityResponse = await blackduckApiService.getProjectVersionVulnerabilities(bearerToken, projectVersionHref)
                 const vulnerableBomComponents = vulnerabilityResponse?.result?.items
                 if (vulnerableBomComponents) {
@@ -23994,7 +24017,7 @@ function runWithPolicyCheck(blackduckPolicyCheck) {
               } else {
                 setFailed(`Failed because unable to find version named: '${PROJECT_VERSION}' for project named: '${PROJECT_NAME}'`)
               }
-        
+      
             } else {
               setFailed(`Failed because unable to find project named: '${PROJECT_NAME}'`)
             }
@@ -24005,8 +24028,8 @@ function runWithPolicyCheck(blackduckPolicyCheck) {
             (0, core_1.info)(`${detect_manager_1.TOOL_NAME} executed in ${inputs_1.SCAN_MODE} mode. Skipping policy check.`);
             blackduckPolicyCheck.skipCheck();
         }
-        const diagnosticMode = ((_a = process.env.DETECT_DIAGNOSTIC) === null || _a === void 0 ? void 0 : _a.toLowerCase()) === 'true';
-        const extendedDiagnosticMode = ((_b = process.env.DETECT_DIAGNOSTIC_EXTENDED) === null || _b === void 0 ? void 0 : _b.toLowerCase()) === 'true';
+        const diagnosticMode = ((_b = process.env.DETECT_DIAGNOSTIC) === null || _b === void 0 ? void 0 : _b.toLowerCase()) === 'true';
+        const extendedDiagnosticMode = ((_c = process.env.DETECT_DIAGNOSTIC_EXTENDED) === null || _c === void 0 ? void 0 : _c.toLowerCase()) === 'true';
         if (diagnosticMode || extendedDiagnosticMode) {
             const diagnosticGlobber = yield (0, glob_1.create)(`${outputPath}/runs/*.zip`);
             const diagnosticZip = yield diagnosticGlobber.glob();
