@@ -23899,7 +23899,7 @@ function runWithPolicyCheck(blackduckPolicyCheck) {
                 (0, core_1.info)(`You have at least one enabled policy, executing ${detect_manager_1.TOOL_NAME} in ${inputs_1.SCAN_MODE} scan mode...`);
             }
         }
-        const detectArgs = [`--blackduck.trust.cert=${inputs_1.DETECT_TRUST_CERT}`, `--blackduck.url=${inputs_1.BLACKDUCK_URL}`, `--blackduck.api.token=${inputs_1.BLACKDUCK_API_TOKEN}`, `--detect.blackduck.scan.mode=${inputs_1.SCAN_MODE}`, `--detect.output.path=${outputPath}`, `--detect.scan.output.path=${outputPath}`];
+        const detectArgs = [`--blackduck.trust.cert=${inputs_1.DETECT_TRUST_CERT}`, `--blackduck.url=${inputs_1.BLACKDUCK_URL}`, `--blackduck.api.token=${inputs_1.BLACKDUCK_API_TOKEN}`, `--detect.blackduck.scan.mode=${inputs_1.SCAN_MODE}`, `--detect.output.path=${outputPath}`, `--detect.scan.output.path=${outputPath}`, `--detect.cleanup=false`];
         const detectPath = yield (0, detect_manager_1.findOrDownloadDetect)().catch(reason => {
             (0, core_1.setFailed)(`Could not download ${detect_manager_1.TOOL_NAME} ${inputs_1.DETECT_VERSION}: ${reason}`);
         });
@@ -23954,11 +23954,14 @@ function runWithPolicyCheck(blackduckPolicyCheck) {
             (0, core_1.info)('Reporting complete.');
         }
         else if (inputs_1.SCAN_MODE === 'INTELLIGENT') {
-            (0, core_1.info)(`${detect_manager_1.TOOL_NAME} executed in CPP mode. Beginning reporting...`);
+            (0, core_1.info)(`${detect_manager_1.TOOL_NAME} executed in INTELLIGENT mode. Beginning reporting...`);
             //for project name=${PROJECT_NAME} ad version=${PROJECT_VERSION}...`)
             const jsonGlobber = yield (0, glob_1.create)(`${outputPath}/runs/*/status/status.json`);
             const scanJsonPaths = yield jsonGlobber.glob();
-            (0, upload_artifacts_1.uploadArtifact)('Intelligent Scan JSON', outputPath, scanJsonPaths);
+            for (const path of scanJsonPaths) {
+                (0, core_1.info)(`${detect_manager_1.TOOL_NAME} glob path=${path}`);
+            }
+            //uploadArtifact('Intelligent Scan JSON', outputPath, scanJsonPaths)
             const scanJsonPath = scanJsonPaths[0];
             const rawdata = fs_1.default.readFileSync(scanJsonPath);
             const intelligentScanResults = JSON.parse(rawdata.toString());
