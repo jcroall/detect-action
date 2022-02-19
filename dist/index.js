@@ -23197,6 +23197,7 @@ const Handlers_1 = __nccwpck_require__(8520);
 const HttpClient_1 = __nccwpck_require__(8209);
 const RestClient_1 = __nccwpck_require__(8649);
 const application_constants_1 = __nccwpck_require__(1354);
+const detect_manager_1 = __nccwpck_require__(8082);
 class BlackduckApiService {
     constructor(blackduckUrl, blackduckApiToken) {
         this.blackduckUrl = cleanUrl(blackduckUrl);
@@ -23296,6 +23297,8 @@ class BlackduckApiService {
     getProjectVersionVulnerabilities(bearerToken, baseUrl) {
         return __awaiter(this, void 0, void 0, function* () {
             const requestPath = `${baseUrl}/vulnerable-bom-components?limit=1000`;
+            (0, core_1.info)(`${detect_manager_1.TOOL_NAME} getProjectVersionVulnerabilities baseUrl=${baseUrl}`);
+            (0, core_1.info)(`${detect_manager_1.TOOL_NAME} getProjectVersionVulnerabilities requestPath=${requestPath}`);
             return this.get(bearerToken, requestPath);
         });
     }
