@@ -23300,21 +23300,25 @@ class BlackduckApiService {
         });
     }
     getPolicyViolations(bearerToken, componentsUrl, projectName, projectVersion) {
-        var _a, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             //const policyViolation = <IIntelligentScanResults>{}
-            const itemArray = {};
-            const restResponse = {};
+            //const itemArray = <IBlackduckItemArray<IIntelligentScanResults>>{}
+            //const restResponse = <IRestResponse<IBlackduckItemArray<IIntelligentScanResults>>>{}
+            const items = {};
+            const vuln = {};
+            vuln.name = "VULN-1";
+            const lic = {};
+            lic.licenseName = "LICENSE-1";
+            lic._meta.href = "http://link-to-lic";
             const policyViolation = {};
-            policyViolation.componentIdentifier = "maven:test:1234";
-            (_a = restResponse.result) === null || _a === void 0 ? void 0 : _a.items.push(policyViolation);
-            const policyViolation2 = {};
-            policyViolation2.componentIdentifier = "maven:test:1234";
-            (_b = restResponse.result) === null || _b === void 0 ? void 0 : _b.items.push(policyViolation2);
-            const policyViolation3 = {};
-            policyViolation3.componentIdentifier = "maven:test:1234";
-            (_c = restResponse.result) === null || _c === void 0 ? void 0 : _c.items.push(policyViolation3);
-            return restResponse;
+            policyViolation.componentName = "Component1";
+            policyViolation.versionName = "Version1";
+            policyViolation.violatingPolicyNames = ["Policy1"];
+            policyViolation.policyViolationVulnerabilities = [vuln];
+            policyViolation.policyViolationLicenses = [lic];
+            policyViolation._meta.href = "http://link-to-api";
+            items.push(policyViolation);
+            return items;
         });
     }
     requestPage(bearerToken, requestPath, offset, limit) {
@@ -23879,7 +23883,7 @@ function run() {
 }
 exports.run = run;
 function runWithPolicyCheck(blackduckPolicyCheck) {
-    var _a, _b, _c;
+    var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
         (0, core_1.info)(`detect-version: ${inputs_1.DETECT_VERSION}`);
         (0, core_1.info)(`output-path-override: ${inputs_1.OUTPUT_PATH_OVERRIDE}`);
@@ -23950,7 +23954,6 @@ function runWithPolicyCheck(blackduckPolicyCheck) {
             const policyViolations = JSON.parse(rawdata.toString());
             hasPolicyViolations = policyViolations.length > 0;
             (0, core_1.debug)(`Policy Violations Present: ${hasPolicyViolations}`);
-            // @ts-ignore
             const failureConditionsMet = detectExitCode === exit_codes_1.POLICY_SEVERITY || inputs_1.FAIL_ON_ALL_POLICY_SEVERITIES;
             const rapidScanReport = yield (0, reporting_1.createRapidScanReportString)(policyViolations, hasPolicyViolations && failureConditionsMet);
             if ((0, github_context_1.isPullRequest)()) {
@@ -23976,10 +23979,7 @@ function runWithPolicyCheck(blackduckPolicyCheck) {
             //for project name=${PROJECT_NAME} ad version=${PROJECT_VERSION}...`)
             const jsonGlobber = yield (0, glob_1.create)(`${outputPath}/runs/*/status/status.json`);
             const scanJsonPaths = yield jsonGlobber.glob();
-            for (const path of scanJsonPaths) {
-                (0, core_1.info)(`${detect_manager_1.TOOL_NAME} glob path=${path}`);
-            }
-            //uploadArtifact('Intelligent Scan JSON', outputPath, scanJsonPaths)
+            (0, upload_artifacts_1.uploadArtifact)('Intelligent Scan JSON', outputPath, scanJsonPaths);
             const scanJsonPath = scanJsonPaths[0];
             const rawdata = fs_1.default.readFileSync(scanJsonPath);
             const intelligentScanStatus = JSON.parse(rawdata.toString());
@@ -23990,7 +23990,9 @@ function runWithPolicyCheck(blackduckPolicyCheck) {
             const bearerToken = yield blackduckApiService.getBearerToken();
             // TODO: Can there be more than one results location?
             const policyViolations = yield blackduckApiService.getPolicyViolations(bearerToken, intelligentScanStatus.projectName, intelligentScanStatus.projectVersion, intelligentScanStatus.results[0].location);
-            (0, core_1.info)(`${detect_manager_1.TOOL_NAME} totalCount=${(_a = policyViolations.result) === null || _a === void 0 ? void 0 : _a.totalCount}`);
+            const failureConditionsMet = detectExitCode === exit_codes_1.POLICY_SEVERITY || inputs_1.FAIL_ON_ALL_POLICY_SEVERITIES;
+            const rapidScanReport = yield (0, reporting_1.createRapidScanReportString)(policyViolations, hasPolicyViolations && failureConditionsMet);
+            (0, core_1.info)(`${detect_manager_1.TOOL_NAME} rapidScanReport=${rapidScanReport}`);
             /*
             const blackduckApiService = new BlackduckApiService(BLACKDUCK_URL, BLACKDUCK_API_TOKEN)
             const bearerToken = await blackduckApiService.getBearerToken()
@@ -24028,8 +24030,8 @@ function runWithPolicyCheck(blackduckPolicyCheck) {
             (0, core_1.info)(`${detect_manager_1.TOOL_NAME} executed in ${inputs_1.SCAN_MODE} mode. Skipping policy check.`);
             blackduckPolicyCheck.skipCheck();
         }
-        const diagnosticMode = ((_b = process.env.DETECT_DIAGNOSTIC) === null || _b === void 0 ? void 0 : _b.toLowerCase()) === 'true';
-        const extendedDiagnosticMode = ((_c = process.env.DETECT_DIAGNOSTIC_EXTENDED) === null || _c === void 0 ? void 0 : _c.toLowerCase()) === 'true';
+        const diagnosticMode = ((_a = process.env.DETECT_DIAGNOSTIC) === null || _a === void 0 ? void 0 : _a.toLowerCase()) === 'true';
+        const extendedDiagnosticMode = ((_b = process.env.DETECT_DIAGNOSTIC_EXTENDED) === null || _b === void 0 ? void 0 : _b.toLowerCase()) === 'true';
         if (diagnosticMode || extendedDiagnosticMode) {
             const diagnosticGlobber = yield (0, glob_1.create)(`${outputPath}/runs/*.zip`);
             const diagnosticZip = yield diagnosticGlobber.glob();
