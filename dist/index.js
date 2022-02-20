@@ -23639,7 +23639,7 @@ function createIntelligentScanReportString(componentsUrl, projectName, projectVe
         const blackduckApiService = new blackduck_api_1.BlackduckApiService(inputs_1.BLACKDUCK_URL, inputs_1.BLACKDUCK_API_TOKEN);
         const bearerToken = yield blackduckApiService.getBearerToken();
         var baseUrl = componentsUrl;
-        baseUrl = componentsUrl.replace("/components", "");
+        baseUrl = componentsUrl.replace("components", "");
         const vulnerabilitesResponse = yield blackduckApiService.getProjectVersionVulnerabilities(bearerToken, baseUrl);
         const vulnerabilities = (_a = vulnerabilitesResponse === null || vulnerabilitesResponse === void 0 ? void 0 : vulnerabilitesResponse.result) === null || _a === void 0 ? void 0 : _a.items;
         let vulns_by_component = new Map();
