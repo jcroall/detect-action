@@ -23635,6 +23635,7 @@ function createIntelligentScanReportString(componentsUrl, projectName, projectVe
     return __awaiter(this, void 0, void 0, function* () {
         const blackduckApiService = new blackduck_api_1.BlackduckApiService(inputs_1.BLACKDUCK_URL, inputs_1.BLACKDUCK_API_TOKEN);
         const bearerToken = yield blackduckApiService.getBearerToken();
+        var rapidScanResults = new Array();
         var baseUrl = componentsUrl;
         baseUrl = componentsUrl.replace("/components", "");
         // Get all vulnerabilities and bucket by component name (should be cmoponent ID?)
@@ -23650,6 +23651,7 @@ function createIntelligentScanReportString(componentsUrl, projectName, projectVe
                 vulns_by_component.get(vulnerability.componentName).push(vulnerability);
             }
         }
+        // Get all components with whether they violated policy or not, and create rapidScanResults
         const componentsResponse = yield blackduckApiService.getComponents(bearerToken, componentsUrl);
         const components = (_b = componentsResponse === null || componentsResponse === void 0 ? void 0 : componentsResponse.result) === null || _b === void 0 ? void 0 : _b.items;
         if (components) {
@@ -23657,13 +23659,29 @@ function createIntelligentScanReportString(componentsUrl, projectName, projectVe
                 (0, core_1.info)(`${detect_manager_1.TOOL_NAME} componentName=${component.componentName} policyStatus=${component.policyStatus}`);
                 if (component.policyStatus === "IN_VIOLATION") {
                     (0, core_1.info)(`${detect_manager_1.TOOL_NAME}   Policy violation:`);
+                    let rapidScanResult = {};
+                    rapidScanResult.componentIdentifier = component.componentName;
+                    rapidScanResult.componentName = component.componentName;
+                    rapidScanResult.versionName = component.componentVersionName;
+                    rapidScanResult.policyViolationLicenses = new Array();
+                    rapidScanResult.violatingPolicyNames = new Array();
+                    rapidScanResult.policyViolationVulnerabilities = new Array();
+                    rapidScanResult._meta = { href: "" };
                     const policyRulesResponse = yield blackduckApiService.getPolicyRules(bearerToken, component._meta.href + "/policy-rules");
                     const policyRules = (_c = policyRulesResponse === null || policyRulesResponse === void 0 ? void 0 : policyRulesResponse.result) === null || _c === void 0 ? void 0 : _c.items;
                     if (policyRules) {
-                        component.violatingPolicyNames = new Array();
                         for (const policyRule of policyRules) {
                             (0, core_1.info)(`${detect_manager_1.TOOL_NAME}     name=${policyRule.name} severity=${policyRule.severity}`);
-                            component.violatingPolicyNames.push(policyRule.name);
+                            rapidScanResult.violatingPolicyNames.push(policyRule.name);
+                        }
+                    }
+                    let vulns_for_component = vulns_by_component.get(component.componentName);
+                    if (vulns_for_component) {
+                        for (const vuln of vulns_for_component) {
+                            (0, core_1.info)(`${detect_manager_1.TOOL_NAME}     vuln=${vuln.vulnerabilityWithRemediation.vulnerabilityName}`);
+                            let vulnerability = {};
+                            vulnerability.name = vuln.vulnerabilityWithRemediation.vulnerabilityName;
+                            rapidScanResult.policyViolationVulnerabilities.push(vulnerability);
                         }
                     }
                 }
