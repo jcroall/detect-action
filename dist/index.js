@@ -23197,7 +23197,6 @@ const Handlers_1 = __nccwpck_require__(8520);
 const HttpClient_1 = __nccwpck_require__(8209);
 const RestClient_1 = __nccwpck_require__(8649);
 const application_constants_1 = __nccwpck_require__(1354);
-const detect_manager_1 = __nccwpck_require__(8082);
 class BlackduckApiService {
     constructor(blackduckUrl, blackduckApiToken) {
         this.blackduckUrl = cleanUrl(blackduckUrl);
@@ -23297,8 +23296,6 @@ class BlackduckApiService {
     getProjectVersionVulnerabilities(bearerToken, baseUrl) {
         return __awaiter(this, void 0, void 0, function* () {
             const requestPath = `${baseUrl}/vulnerable-bom-components?limit=1000`;
-            (0, core_1.info)(`${detect_manager_1.TOOL_NAME} getProjectVersionVulnerabilities baseUrl=${baseUrl}`);
-            (0, core_1.info)(`${detect_manager_1.TOOL_NAME} getProjectVersionVulnerabilities requestPath=${requestPath}`);
             return this.get(bearerToken, requestPath);
         });
     }
@@ -23639,13 +23636,14 @@ function createIntelligentScanReportString(componentsUrl, projectName, projectVe
         const blackduckApiService = new blackduck_api_1.BlackduckApiService(inputs_1.BLACKDUCK_URL, inputs_1.BLACKDUCK_API_TOKEN);
         const bearerToken = yield blackduckApiService.getBearerToken();
         var baseUrl = componentsUrl;
-        baseUrl = componentsUrl.replace("components", "");
-        const vulnerabilitesResponse = yield blackduckApiService.getProjectVersionVulnerabilities(bearerToken, baseUrl);
-        const vulnerabilities = (_a = vulnerabilitesResponse === null || vulnerabilitesResponse === void 0 ? void 0 : vulnerabilitesResponse.result) === null || _a === void 0 ? void 0 : _a.items;
+        baseUrl = componentsUrl.replace("/components", "");
+        // Get all vulnerabilities and bucket by component name (should be cmoponent ID?)
+        const vulnerabilitiesResponse = yield blackduckApiService.getProjectVersionVulnerabilities(bearerToken, baseUrl);
+        const vulnerabilities = (_a = vulnerabilitiesResponse === null || vulnerabilitiesResponse === void 0 ? void 0 : vulnerabilitiesResponse.result) === null || _a === void 0 ? void 0 : _a.items;
         let vulns_by_component = new Map();
         if (vulnerabilities) {
             for (const vulnerability of vulnerabilities) {
-                (0, core_1.info)(`${detect_manager_1.TOOL_NAME} Vulnerability in component=${vulnerability.componentName} license=${vulnerability.license} vuln=${vulnerability.vulnerabilityWithRemediation.vulnerabilityName} score=${vulnerability.vulnerabilityWithRemediation.overallScore}`);
+                (0, core_1.info)(`${detect_manager_1.TOOL_NAME} Vulnerability in component=${vulnerability.componentName} license=${vulnerability.license.type} vuln=${vulnerability.vulnerabilityWithRemediation.vulnerabilityName} score=${vulnerability.vulnerabilityWithRemediation.overallScore}`);
                 if (!vulns_by_component.get(vulnerability.componentName)) {
                     vulns_by_component.set(vulnerability.componentName, new Array());
                 }
