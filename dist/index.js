@@ -23683,18 +23683,23 @@ function createIntelligentScanReportString(componentsUrl, projectName, projectVe
                 }
             }
         }
-        let message = '';
+        var message = ``;
+        /*
+          var message = ""
+      
         if (policyViolations.length == 0) {
-            message = message.concat('# :white_check_mark: None of your dependencies violate policy!');
+          message = message.concat('# :white_check_mark: None of your dependencies violate policy!')
+        } else {
+          const violationSymbol = policyCheckWillFail ? ':x:' : ':warning:'
+          message = message.concat(`# ${violationSymbol} Found dependencies violating policy!\r\n\r\n`)
+      
+          const componentReports = await createRapidScanReport(policyViolations)
+          const tableBody = componentReports.map(componentReport => createComponentRow(componentReport)).join('\r\n')
+          const reportTable = TABLE_HEADER.concat(tableBody)
+          message = message.concat(reportTable)
         }
-        else {
-            const violationSymbol = policyCheckWillFail ? ':x:' : ':warning:';
-            message = message.concat(`# ${violationSymbol} Found dependencies violating policy!\r\n\r\n`);
-            const componentReports = yield (0, report_1.createRapidScanReport)(policyViolations);
-            const tableBody = componentReports.map(componentReport => createComponentRow(componentReport)).join('\r\n');
-            const reportTable = exports.TABLE_HEADER.concat(tableBody);
-            message = message.concat(reportTable);
-        }
+          return message
+         */
         return message;
     });
 }
