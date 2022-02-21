@@ -23751,7 +23751,10 @@ function createIntelligentScanReportString(componentsUrl, projectName, projectVe
         else {
             const violationSymbol = policyCheckWillFail ? ':x:' : ':warning:';
             message = message.concat(`# ${violationSymbol} Found dependencies violating policy!\r\n\r\n`);
-            const tableBody = componentReports.map(componentReport => createComponentRow(componentReport)).join('\r\n');
+            let tableBody = '';
+            for (const componentReport of componentReports) {
+                tableBody += createComponentRow(componentReport) + '\r\n';
+            }
             const reportTable = exports.TABLE_HEADER.concat(tableBody);
             message = message.concat(reportTable);
         }
