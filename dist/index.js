@@ -23197,6 +23197,7 @@ const Handlers_1 = __nccwpck_require__(8520);
 const HttpClient_1 = __nccwpck_require__(8209);
 const RestClient_1 = __nccwpck_require__(8649);
 const application_constants_1 = __nccwpck_require__(1354);
+const detect_manager_1 = __nccwpck_require__(8082);
 class BlackduckApiService {
     constructor(blackduckUrl, blackduckApiToken) {
         this.blackduckUrl = cleanUrl(blackduckUrl);
@@ -23245,6 +23246,7 @@ class BlackduckApiService {
     }
     getUpgradeGuidanceWithUrl(bearerToken, upgradeUrl) {
         return __awaiter(this, void 0, void 0, function* () {
+            (0, core_1.info)(`${detect_manager_1.TOOL_NAME} getUpgradeGuidanceWithUrl(upgradeUrl=${upgradeUrl}:`);
             return this.get(bearerToken, upgradeUrl);
         });
     }
