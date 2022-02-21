@@ -23243,6 +23243,11 @@ class BlackduckApiService {
             return this.get(bearerToken, `${componentVersion._meta.href}/upgrade-guidance`);
         });
     }
+    getUpgradeGuidanceWithUrl(bearerToken, upgradeUrl) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.get(bearerToken, upgradeUrl);
+        });
+    }
     getComponentsMatching(bearerToken, componentIdentifier, limit = 10) {
         return __awaiter(this, void 0, void 0, function* () {
             const requestPath = `/api/components?q=${componentIdentifier}`;
@@ -23306,9 +23311,9 @@ class BlackduckApiService {
             //const policyViolation = <IIntelligentScanResults>{}
         });
     }
-    getPolicyRules(bearerToken, policuRulesUrl) {
+    getPolicyRules(bearerToken, policyRulesUrl) {
         return __awaiter(this, void 0, void 0, function* () {
-            const requestPath = `${policuRulesUrl}?limit=1000`;
+            const requestPath = `${policyRulesUrl}?limit=1000`;
             return this.get(bearerToken, requestPath);
         });
     }
@@ -23635,7 +23640,7 @@ function createIntelligentScanReportString(componentsUrl, projectName, projectVe
     return __awaiter(this, void 0, void 0, function* () {
         const blackduckApiService = new blackduck_api_1.BlackduckApiService(inputs_1.BLACKDUCK_URL, inputs_1.BLACKDUCK_API_TOKEN);
         const bearerToken = yield blackduckApiService.getBearerToken();
-        var rapidScanResults = new Array();
+        var policyViolations = new Array();
         var baseUrl = componentsUrl;
         baseUrl = componentsUrl.replace("/components", "");
         // Get all vulnerabilities and bucket by component name (should be cmoponent ID?)
@@ -23660,13 +23665,6 @@ function createIntelligentScanReportString(componentsUrl, projectName, projectVe
                 if (component.policyStatus === "IN_VIOLATION") {
                     (0, core_1.info)(`${detect_manager_1.TOOL_NAME}   Policy violation:`);
                     let rapidScanResult = {};
-                    rapidScanResult.componentIdentifier = component.componentName;
-                    rapidScanResult.componentName = component.componentName;
-                    rapidScanResult.versionName = component.componentVersionName;
-                    rapidScanResult.policyViolationLicenses = new Array();
-                    rapidScanResult.violatingPolicyNames = new Array();
-                    rapidScanResult.policyViolationVulnerabilities = new Array();
-                    rapidScanResult._meta = { href: "" };
                     const policyRulesResponse = yield blackduckApiService.getPolicyRules(bearerToken, component._meta.href + "/policy-rules");
                     const policyRules = (_c = policyRulesResponse === null || policyRulesResponse === void 0 ? void 0 : policyRulesResponse.result) === null || _c === void 0 ? void 0 : _c.items;
                     if (policyRules) {
@@ -23677,30 +23675,26 @@ function createIntelligentScanReportString(componentsUrl, projectName, projectVe
                     }
                     let vulns_for_component = vulns_by_component.get(component.componentName);
                     if (vulns_for_component) {
-                        for (const vuln of vulns_for_component) {
-                            (0, core_1.info)(`${detect_manager_1.TOOL_NAME}     vuln=${vuln.vulnerabilityWithRemediation.vulnerabilityName}`);
-                            let vulnerability = {};
-                            vulnerability.name = vuln.vulnerabilityWithRemediation.vulnerabilityName;
-                            rapidScanResult.policyViolationVulnerabilities.push(vulnerability);
+                        for (const vulnerability of vulns_for_component) {
+                            (0, core_1.info)(`${detect_manager_1.TOOL_NAME}     vuln=${vulnerability.vulnerabilityWithRemediation.vulnerabilityName} score=${vulnerability.vulnerabilityWithRemediation.baseScore}`);
                         }
                     }
+                    policyViolations.push(rapidScanResult);
                 }
             }
         }
-        /*
-        let message = ''
-        if (policyViolations.length == 0) {
-          message = message.concat('# :white_check_mark: None of your dependencies violate policy!')
-        } else {
-          const violationSymbol = policyCheckWillFail ? ':x:' : ':warning:'
-          message = message.concat(`# ${violationSymbol} Found dependencies violating policy!\r\n\r\n`)
-    
-          const componentReports = await createRapidScanReport(policyViolations)
-          const tableBody = componentReports.map(componentReport => createComponentRow(componentReport)).join('\r\n')
-          const reportTable = TABLE_HEADER.concat(tableBody)
-          message = message.concat(reportTable)
-        } */
         let message = '';
+        if (policyViolations.length == 0) {
+            message = message.concat('# :white_check_mark: None of your dependencies violate policy!');
+        }
+        else {
+            const violationSymbol = policyCheckWillFail ? ':x:' : ':warning:';
+            message = message.concat(`# ${violationSymbol} Found dependencies violating policy!\r\n\r\n`);
+            const componentReports = yield (0, report_1.createRapidScanReport)(policyViolations);
+            const tableBody = componentReports.map(componentReport => createComponentRow(componentReport)).join('\r\n');
+            const reportTable = exports.TABLE_HEADER.concat(tableBody);
+            message = message.concat(reportTable);
+        }
         return message;
     });
 }
