@@ -23721,9 +23721,9 @@ function createIntelligentScanReportString(componentsUrl, projectName, projectVe
                             componentReport.violatedPolicies.push(policyRule.name);
                         }
                     }
+                    componentReport.vulnerabilities = new Array();
                     let vulnerabilitiesByComponent = vulnMapByComponent.get(component.componentName);
                     if (vulnerabilitiesByComponent) {
-                        componentReport.vulnerabilities = new Array();
                         (0, core_1.info)(`${detect_manager_1.TOOL_NAME}   Vulnerabilities:`);
                         for (const vulnerability of vulnerabilitiesByComponent) {
                             (0, core_1.info)(`${detect_manager_1.TOOL_NAME}     vuln=${vulnerability.vulnerabilityWithRemediation.vulnerabilityName} score=${vulnerability.vulnerabilityWithRemediation.overallScore}`);
@@ -23753,6 +23753,13 @@ function createIntelligentScanReportString(componentsUrl, projectName, projectVe
             message = message.concat(`# ${violationSymbol} Found dependencies violating policy!\r\n\r\n`);
             let tableBody = '';
             for (const componentReport of componentReports) {
+                (0, core_1.info)(`${detect_manager_1.TOOL_NAME} component=${componentReport.name}`);
+                if (componentReport.vulnerabilities == undefined) {
+                    (0, core_1.info)(`${detect_manager_1.TOOL_NAME} vulnerabilities is undefined`);
+                }
+                if (componentReport.licenses == undefined) {
+                    (0, core_1.info)(`${detect_manager_1.TOOL_NAME} licenses is undefined`);
+                }
                 tableBody += createComponentRow(componentReport) + '\r\n';
             }
             const reportTable = exports.TABLE_HEADER.concat(tableBody);
@@ -24135,38 +24142,23 @@ function runWithPolicyCheck(blackduckPolicyCheck) {
             const failureConditionsMet = detectExitCode === exit_codes_1.POLICY_SEVERITY || inputs_1.FAIL_ON_ALL_POLICY_SEVERITIES;
             const intelligentScanReport = yield (0, reporting_1.createIntelligentScanReportString)(intelligentScanStatus.results[0].location, intelligentScanStatus.projectName, intelligentScanStatus.projectVersion, hasPolicyViolations && failureConditionsMet);
             (0, core_1.info)(`${detect_manager_1.TOOL_NAME} intelligentScanReport=${intelligentScanReport}`);
-            /*
-            const blackduckApiService = new BlackduckApiService(BLACKDUCK_URL, BLACKDUCK_API_TOKEN)
-            const bearerToken = await blackduckApiService.getBearerToken()
-            const projectResponse = await blackduckApiService.getProjects(bearerToken, PROJECT_NAME)
-            const projects = projectResponse?.result?.items
-            if (projects) {
-              const projectHref = projects[0]._meta.href
-              info(`${TOOL_NAME} project href=${projectHref}`)
-      
-              const versionResponse = await blackduckApiService.getProjectVersions(bearerToken, projectHref, PROJECT_VERSION)
-              const versions = versionResponse?.result?.items
-              if (versions) {
-                const projectVersionHref = versions[0]._meta.href
-                info(`${TOOL_NAME} project version href=${projectVersionHref}`)
-      
-                const vulnerabilityResponse = await blackduckApiService.getProjectVersionVulnerabilities(bearerToken, projectVersionHref)
-                const vulnerableBomComponents = vulnerabilityResponse?.result?.items
-                if (vulnerableBomComponents) {
-                  info(`${TOOL_NAME} vulnerable components:`)
-                  for (const vulnerableComponent of vulnerableBomComponents) {
-                    info(`${TOOL_NAME}   name=${vulnerableComponent.componentName} version=${vulnerableComponent.componentVersionName} vuln=${vulnerableComponent.vulnerabilityWithRemediation.vulnerabilityName}`)
-                  }
-                }
-              } else {
-                setFailed(`Failed because unable to find version named: '${PROJECT_VERSION}' for project named: '${PROJECT_NAME}'`)
-              }
-      
-            } else {
-              setFailed(`Failed because unable to find project named: '${PROJECT_NAME}'`)
+            if ((0, github_context_1.isPullRequest)()) {
+                (0, core_1.info)('This is a pull request, commenting...');
+                (0, comment_1.commentOnPR)(intelligentScanReport);
+                (0, core_1.info)('Successfully commented on PR.');
             }
-            info(`${TOOL_NAME} No-op...`)
-            */
+            if (hasPolicyViolations) {
+                if (failureConditionsMet) {
+                    blackduckPolicyCheck.failCheck('Components found that violate your Black Duck Policies!', intelligentScanReport);
+                }
+                else {
+                    blackduckPolicyCheck.passCheck('No components violated your BLOCKER or CRITICAL Black Duck Policies!', intelligentScanReport);
+                }
+            }
+            else {
+                blackduckPolicyCheck.passCheck('No components found that violate your Black Duck policies!', intelligentScanReport);
+            }
+            (0, core_1.info)('Reporting complete.');
         }
         else {
             (0, core_1.info)(`${detect_manager_1.TOOL_NAME} executed in ${inputs_1.SCAN_MODE} mode. Skipping policy check.`);
