@@ -23663,31 +23663,15 @@ function createIntelligentScanReportString(componentsUrl, projectName, projectVe
         const componentReports = new Array();
         if (components) {
             for (const component of components) {
-                /* export interface IComponentReport {
-            violatedPolicies: string[]
-            name: string                          DONE
-            href?: string                         DONE
-            licenses: ILicenseReport[]            DONE
-            vulnerabilities: IVulnerabilityReport[] DONE
-            shortTermUpgrade?: IUpgradeReport     DONE
-            longTermUpgrade?: IUpgradeReport      DONE
-            }
-          
-          }
-          }*/
-                // Fields that will get filled in for the table
-                let violatedPolicies = ''; // = component.violatedPolicies.join('<br/>')
-                let componentLicenses = ''; // component.licenses.map(license => `${license.violatesPolicy ? ':x: &nbsp; ' : ''}[${license.name}](${license.href})`).join('<br/>')
-                let vulnerabilities = ''; // component.vulnerabilities.map(vulnerability => `${vulnerability.violatesPolicy ? ':x: &nbsp; ' : ''}[${vulnerability.name}](${vulnerability.href})${vulnerability.cvssScore && vulnerability.severity ? ` ${vulnerability.severity}: CVSS ${vulnerability.cvssScore}` : ''}`).join('<br/>')
                 if (component.policyStatus === "IN_VIOLATION") {
                     (0, core_1.info)(`${detect_manager_1.TOOL_NAME} componentName=${component.componentName} policyStatus=${component.policyStatus} violates policy:`);
-                    var componentReport = {};
+                    const componentReport = {};
                     // Set up component name and license and href
                     componentReport.name = component.componentName;
                     componentReport.href = component._meta.href;
                     componentReport.licenses = new Array();
                     for (const license of component.licenses) {
-                        var componentLicense = {};
+                        const componentLicense = {};
                         componentLicense.name = (_c = component.licenses[0]) === null || _c === void 0 ? void 0 : _c.licenseDisplay;
                         componentLicense.href = (_d = component.licenses[0]) === null || _d === void 0 ? void 0 : _d.license;
                         componentLicense.violatesPolicy = false;
@@ -23742,46 +23726,31 @@ function createIntelligentScanReportString(componentsUrl, projectName, projectVe
             }
         }
         let message = ``;
-        if (componentReports == undefined) {
-            (0, core_1.info)(`${detect_manager_1.TOOL_NAME} componentReports is undefined`);
-        }
         if ((components === null || components === void 0 ? void 0 : components.length) == 0) {
             message = message.concat('# :white_check_mark: None of your dependencies violate policy!');
         }
         else {
             const violationSymbol = policyCheckWillFail ? ':x:' : ':warning:';
             message = message.concat(`# ${violationSymbol} Found dependencies violating policy!\r\n\r\n`);
-            let tableBody = '';
-            for (const componentReport of componentReports) {
-                (0, core_1.info)(`${detect_manager_1.TOOL_NAME} component=${componentReport.name}`);
-                if (componentReport.vulnerabilities == undefined) {
-                    (0, core_1.info)(`${detect_manager_1.TOOL_NAME} vulnerabilities is undefined`);
+            const tableBody = componentReports.map(componentReport => createComponentRow(componentReport)).join('\r\n');
+            /*
+                let tableBody = ''
+                for (const componentReport of componentReports) {
+                  info(`${TOOL_NAME} component=${componentReport.name}`)
+            
+                  if (componentReport.vulnerabilities == undefined) {
+                    info(`${TOOL_NAME} vulnerabilities is undefined`)
+                  }
+                  if (componentReport.licenses == undefined) {
+                    info(`${TOOL_NAME} licenses is undefined`)
+                  }
+            
+                  tableBody += createComponentRow(componentReport) + '\r\n'
                 }
-                if (componentReport.licenses == undefined) {
-                    (0, core_1.info)(`${detect_manager_1.TOOL_NAME} licenses is undefined`);
-                }
-                tableBody += createComponentRow(componentReport) + '\r\n';
-            }
+              */
             const reportTable = exports.TABLE_HEADER.concat(tableBody);
             message = message.concat(reportTable);
         }
-        (0, core_1.info)(`${detect_manager_1.TOOL_NAME} message=${message}`);
-        /*
-          var message = ""
-      
-        if (policyViolations.length == 0) {
-          message = message.concat('# :white_check_mark: None of your dependencies violate policy!')
-        } else {
-          const violationSymbol = policyCheckWillFail ? ':x:' : ':warning:'
-          message = message.concat(`# ${violationSymbol} Found dependencies violating policy!\r\n\r\n`)
-      
-          const componentReports = await createRapidScanReport(policyViolations)
-          const tableBody = componentReports.map(componentReport => createComponentRow(componentReport)).join('\r\n')
-          const reportTable = TABLE_HEADER.concat(tableBody)
-          message = message.concat(reportTable)
-        }
-          return message
-         */
         return message;
     });
 }
@@ -24140,7 +24109,12 @@ function runWithPolicyCheck(blackduckPolicyCheck) {
             const blackduckApiService = new blackduck_api_1.BlackduckApiService(inputs_1.BLACKDUCK_URL, inputs_1.BLACKDUCK_API_TOKEN);
             const bearerToken = yield blackduckApiService.getBearerToken();
             const failureConditionsMet = detectExitCode === exit_codes_1.POLICY_SEVERITY || inputs_1.FAIL_ON_ALL_POLICY_SEVERITIES;
-            const intelligentScanReport = yield (0, reporting_1.createIntelligentScanReportString)(intelligentScanStatus.results[0].location, intelligentScanStatus.projectName, intelligentScanStatus.projectVersion, hasPolicyViolations && failureConditionsMet);
+            const intelligentScanReport = yield (0, reporting_1.createIntelligentScanReportString)(intelligentScanStatus.results[0].location, intelligentScanStatus.projectName, intelligentScanStatus.projectVersion, 
+            /* hasPolicyViolations && */ failureConditionsMet); // Policy violations is computed within the call, so
+            // it must be estimated outside of the call.
+            if (intelligentScanReport.length > 100) {
+                hasPolicyViolations = true;
+            }
             (0, core_1.info)(`${detect_manager_1.TOOL_NAME} intelligentScanReport=${intelligentScanReport}`);
             if ((0, github_context_1.isPullRequest)()) {
                 (0, core_1.info)('This is a pull request, commenting...');
