@@ -23660,7 +23660,7 @@ function createIntelligentScanReportString(componentsUrl, projectName, projectVe
         const componentsResponse = yield blackduckApiService.getComponents(bearerToken, componentsUrl);
         const components = (_b = componentsResponse === null || componentsResponse === void 0 ? void 0 : componentsResponse.result) === null || _b === void 0 ? void 0 : _b.items;
         // Collect set of component reports
-        var componentReports = new Array();
+        const componentReports = new Array();
         if (components) {
             for (const component of components) {
                 /* export interface IComponentReport {
@@ -23741,7 +23741,10 @@ function createIntelligentScanReportString(componentsUrl, projectName, projectVe
                 }
             }
         }
-        var message = ``;
+        let message = ``;
+        if (componentReports == undefined) {
+            (0, core_1.info)(`${detect_manager_1.TOOL_NAME} componentReports is undefined`);
+        }
         if ((components === null || components === void 0 ? void 0 : components.length) == 0) {
             message = message.concat('# :white_check_mark: None of your dependencies violate policy!');
         }
