@@ -23737,6 +23737,7 @@ function createIntelligentScanReportString(componentsUrl, projectName, projectVe
                             componentReport.vulnerabilities.push(componentVulnerability);
                         }
                     }
+                    componentReports.push(componentReport);
                 }
             }
         }
