@@ -23638,7 +23638,7 @@ function createRapidScanReportString(policyViolations, policyCheckWillFail) {
 }
 exports.createRapidScanReportString = createRapidScanReportString;
 function createIntelligentScanReportString(componentsUrl, projectName, projectVersion, policyCheckWillFail) {
-    var _a, _b, _c;
+    var _a, _b, _c, _d, _e;
     return __awaiter(this, void 0, void 0, function* () {
         const blackduckApiService = new blackduck_api_1.BlackduckApiService(inputs_1.BLACKDUCK_URL, inputs_1.BLACKDUCK_API_TOKEN);
         const bearerToken = yield blackduckApiService.getBearerToken();
@@ -23670,7 +23670,7 @@ function createIntelligentScanReportString(componentsUrl, projectName, projectVe
                     if (link.rel === 'upgrade-guidance') {
                         const upgradeGuidanceResponse = yield blackduckApiService.getUpgradeGuidanceWithUrl(bearerToken, link.href);
                         const upgradeGuidance = upgradeGuidanceResponse.result;
-                        (0, core_1.info)(`${detect_manager_1.TOOL_NAME}   Short term=${upgradeGuidance === null || upgradeGuidance === void 0 ? void 0 : upgradeGuidance.shortTerm.versionName} Long term=${upgradeGuidance === null || upgradeGuidance === void 0 ? void 0 : upgradeGuidance.longTerm.versionName} Version=${upgradeGuidance === null || upgradeGuidance === void 0 ? void 0 : upgradeGuidance.version}`);
+                        (0, core_1.info)(`${detect_manager_1.TOOL_NAME}   Short term=${(_c = upgradeGuidance === null || upgradeGuidance === void 0 ? void 0 : upgradeGuidance.shortTerm) === null || _c === void 0 ? void 0 : _c.versionName} Long term=${(_d = upgradeGuidance === null || upgradeGuidance === void 0 ? void 0 : upgradeGuidance.longTerm) === null || _d === void 0 ? void 0 : _d.versionName} Version=${upgradeGuidance === null || upgradeGuidance === void 0 ? void 0 : upgradeGuidance.version}`);
                     }
                 }
                 const upgradeGuidanceResponse = yield blackduckApiService.getUpgradeGuidanceWithUrl(bearerToken, component._meta.href + '/upgrade-guidance');
@@ -23679,7 +23679,7 @@ function createIntelligentScanReportString(componentsUrl, projectName, projectVe
                 if (component.policyStatus === "IN_VIOLATION") {
                     (0, core_1.info)(`${detect_manager_1.TOOL_NAME}   Policy violation:`);
                     const policyRulesResponse = yield blackduckApiService.getPolicyRules(bearerToken, component._meta.href + "/policy-rules");
-                    const policyRules = (_c = policyRulesResponse === null || policyRulesResponse === void 0 ? void 0 : policyRulesResponse.result) === null || _c === void 0 ? void 0 : _c.items;
+                    const policyRules = (_e = policyRulesResponse === null || policyRulesResponse === void 0 ? void 0 : policyRulesResponse.result) === null || _e === void 0 ? void 0 : _e.items;
                     if (policyRules) {
                         for (const policyRule of policyRules) {
                             (0, core_1.info)(`${detect_manager_1.TOOL_NAME}     name=${policyRule.name} severity=${policyRule.severity}`);
