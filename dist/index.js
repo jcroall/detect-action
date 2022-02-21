@@ -23664,6 +23664,13 @@ function createIntelligentScanReportString(componentsUrl, projectName, projectVe
         if (components) {
             for (const component of components) {
                 (0, core_1.info)(`${detect_manager_1.TOOL_NAME} componentName=${component.componentName} policyStatus=${component.policyStatus}`);
+                for (const link of component._meta.links) {
+                    if (link.rel === 'upgrade-guidance') {
+                        const upgradeGuidanceResponse = yield blackduckApiService.getUpgradeGuidanceWithUrl(bearerToken, link.href);
+                        const upgradeGuidance = upgradeGuidanceResponse.result;
+                        (0, core_1.info)(`${detect_manager_1.TOOL_NAME}   Short term=${upgradeGuidance === null || upgradeGuidance === void 0 ? void 0 : upgradeGuidance.shortTerm} Long term=${upgradeGuidance === null || upgradeGuidance === void 0 ? void 0 : upgradeGuidance.longTerm} Version=${upgradeGuidance === null || upgradeGuidance === void 0 ? void 0 : upgradeGuidance.version}`);
+                    }
+                }
                 const upgradeGuidanceResponse = yield blackduckApiService.getUpgradeGuidanceWithUrl(bearerToken, component._meta.href + '/upgrade-guidance');
                 const upgradeGuidance = upgradeGuidanceResponse.result;
                 (0, core_1.info)(`${detect_manager_1.TOOL_NAME}   Short term=${upgradeGuidance === null || upgradeGuidance === void 0 ? void 0 : upgradeGuidance.shortTerm} Long term=${upgradeGuidance === null || upgradeGuidance === void 0 ? void 0 : upgradeGuidance.longTerm} Version=${upgradeGuidance === null || upgradeGuidance === void 0 ? void 0 : upgradeGuidance.version}`);
