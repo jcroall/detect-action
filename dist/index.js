@@ -23664,22 +23664,20 @@ function createIntelligentScanReportString(componentsUrl, projectName, projectVe
                 (0, core_1.info)(`${detect_manager_1.TOOL_NAME} componentName=${component.componentName} policyStatus=${component.policyStatus}`);
                 if (component.policyStatus === "IN_VIOLATION") {
                     (0, core_1.info)(`${detect_manager_1.TOOL_NAME}   Policy violation:`);
-                    let rapidScanResult = {};
                     const policyRulesResponse = yield blackduckApiService.getPolicyRules(bearerToken, component._meta.href + "/policy-rules");
                     const policyRules = (_c = policyRulesResponse === null || policyRulesResponse === void 0 ? void 0 : policyRulesResponse.result) === null || _c === void 0 ? void 0 : _c.items;
                     if (policyRules) {
                         for (const policyRule of policyRules) {
                             (0, core_1.info)(`${detect_manager_1.TOOL_NAME}     name=${policyRule.name} severity=${policyRule.severity}`);
-                            rapidScanResult.violatingPolicyNames.push(policyRule.name);
                         }
                     }
                     let vulns_for_component = vulns_by_component.get(component.componentName);
                     if (vulns_for_component) {
+                        (0, core_1.info)(`${detect_manager_1.TOOL_NAME}   Vulnerabilities:`);
                         for (const vulnerability of vulns_for_component) {
                             (0, core_1.info)(`${detect_manager_1.TOOL_NAME}     vuln=${vulnerability.vulnerabilityWithRemediation.vulnerabilityName} score=${vulnerability.vulnerabilityWithRemediation.baseScore}`);
                         }
                     }
-                    policyViolations.push(rapidScanResult);
                 }
             }
         }
