@@ -24021,7 +24021,7 @@ function runWithPolicyCheck(blackduckPolicyCheck) {
         else {
             outputPath = path_1.default.resolve(runnerTemp, 'blackduck');
         }
-        if (inputs_1.SCAN_MODE === 'RAPID') {
+        if (inputs_1.SCAN_MODE === 'RAPID' || inputs_1.SCAN_MODE === 'INTELLIGENT') {
             (0, core_1.info)('Checking that you have at least one enabled policy...');
             const blackduckApiService = new blackduck_api_1.BlackduckApiService(inputs_1.BLACKDUCK_URL, inputs_1.BLACKDUCK_API_TOKEN);
             const blackDuckBearerToken = yield blackduckApiService.getBearerToken();
@@ -24041,7 +24041,17 @@ function runWithPolicyCheck(blackduckPolicyCheck) {
                 (0, core_1.info)(`You have at least one enabled policy, executing ${detect_manager_1.TOOL_NAME} in ${inputs_1.SCAN_MODE} scan mode...`);
             }
         }
-        const detectArgs = [`--blackduck.trust.cert=${inputs_1.DETECT_TRUST_CERT}`, `--blackduck.url=${inputs_1.BLACKDUCK_URL}`, `--blackduck.api.token=${inputs_1.BLACKDUCK_API_TOKEN}`, `--detect.blackduck.scan.mode=${inputs_1.SCAN_MODE}`, `--detect.output.path=${outputPath}`, `--detect.scan.output.path=${outputPath}`, `--detect.cleanup=false`];
+        const detectArgs = [`--blackduck.trust.cert=${inputs_1.DETECT_TRUST_CERT}`, `--blackduck.url=${inputs_1.BLACKDUCK_URL}`,
+            `--blackduck.api.token=${inputs_1.BLACKDUCK_API_TOKEN}`,
+            `--detect.blackduck.scan.mode=${inputs_1.SCAN_MODE}`,
+            `--detect.output.path=${outputPath}`,
+            `--detect.scan.output.path=${outputPath}`,
+            `--detect.cleanup=false`];
+        if (inputs_1.SCAN_MODE === 'INTELLIGENT') {
+            // JC: Added fail on policies for intelligent scan, should be benign on rapid scan. Not 100% sure this
+            // is the right way to handle intelligent scans.
+            detectArgs.push(`--detect.policy.check.fail.on.severities=BLOCKER,CRITICAL`);
+        }
         const detectPath = yield (0, detect_manager_1.findOrDownloadDetect)().catch(reason => {
             (0, core_1.setFailed)(`Could not download ${detect_manager_1.TOOL_NAME} ${inputs_1.DETECT_VERSION}: ${reason}`);
         });
