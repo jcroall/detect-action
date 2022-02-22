@@ -23751,6 +23751,10 @@ function createIntelligentScanReportString(componentsUrl, projectName, projectVe
             const reportTable = exports.TABLE_HEADER.concat(tableBody);
             message = message.concat(reportTable);
         }
+        // GitHub only allows PR comments or status checks up to 65535 characters
+        if (message.length > 65535) {
+            message = message.substring(0, 65534);
+        }
         return message;
     });
 }
