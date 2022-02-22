@@ -23673,7 +23673,7 @@ function createIntelligentScanReportString(componentsUrl, projectName, projectVe
                     for (const license of component.licenses) {
                         const componentLicense = {};
                         componentLicense.name = (_c = component.licenses[0]) === null || _c === void 0 ? void 0 : _c.licenseDisplay;
-                        componentLicense.href = (_d = component.licenses[0]) === null || _d === void 0 ? void 0 : _d.license;
+                        componentLicense.href = ((_d = component.licenses[0]) === null || _d === void 0 ? void 0 : _d.license) + `/text`;
                         componentLicense.violatesPolicy = false;
                         componentReport.licenses.push(componentLicense);
                     }
@@ -23760,10 +23760,11 @@ function createIntelligentScanReportString(componentsUrl, projectName, projectVe
 }
 exports.createIntelligentScanReportString = createIntelligentScanReportString;
 function createComponentRow(component) {
+    // JC: Remove policy violation status because Intelligent scan does not support this
     const violatedPolicies = component.violatedPolicies.join('<br/>');
     const componentInViolation = (component === null || component === void 0 ? void 0 : component.href) ? `[${component.name}](${component.href})` : component.name;
-    const componentLicenses = component.licenses.map(license => `${license.violatesPolicy ? ':x: &nbsp; ' : ''}[${license.name}](${license.href})`).join('<br/>');
-    const vulnerabilities = component.vulnerabilities.map(vulnerability => `${vulnerability.violatesPolicy ? ':x: &nbsp; ' : ''}[${vulnerability.name}](${vulnerability.href})${vulnerability.cvssScore && vulnerability.severity ? ` ${vulnerability.severity}: CVSS ${vulnerability.cvssScore}` : ''}`).join('<br/>');
+    const componentLicenses = component.licenses.map(license => `[${license.name}](${license.href})`).join('<br/>');
+    const vulnerabilities = component.vulnerabilities.map(vulnerability => `[${vulnerability.name}](${vulnerability.href})${vulnerability.cvssScore && vulnerability.severity ? ` ${vulnerability.severity}: CVSS ${vulnerability.cvssScore}` : ''}`).join('<br/>');
     const shortTermString = component.shortTermUpgrade ? `[${component.shortTermUpgrade.name}](${component.shortTermUpgrade.href}) (${component.shortTermUpgrade.vulnerabilityCount} known vulnerabilities)` : '';
     const longTermString = component.longTermUpgrade ? `[${component.longTermUpgrade.name}](${component.longTermUpgrade.href}) (${component.longTermUpgrade.vulnerabilityCount} known vulnerabilities)` : '';
     return `| ${violatedPolicies} | ${componentInViolation} | ${componentLicenses} | ${vulnerabilities} | ${shortTermString} | ${longTermString} |`;
