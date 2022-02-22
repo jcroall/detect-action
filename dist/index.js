@@ -23197,7 +23197,6 @@ const Handlers_1 = __nccwpck_require__(8520);
 const HttpClient_1 = __nccwpck_require__(8209);
 const RestClient_1 = __nccwpck_require__(8649);
 const application_constants_1 = __nccwpck_require__(1354);
-const detect_manager_1 = __nccwpck_require__(8082);
 class BlackduckApiService {
     constructor(blackduckUrl, blackduckApiToken) {
         this.blackduckUrl = cleanUrl(blackduckUrl);
@@ -23246,7 +23245,6 @@ class BlackduckApiService {
     }
     getUpgradeGuidanceWithUrl(bearerToken, upgradeUrl) {
         return __awaiter(this, void 0, void 0, function* () {
-            (0, core_1.info)(`${detect_manager_1.TOOL_NAME} getUpgradeGuidanceWithUrl(upgradeUrl=${upgradeUrl}:`);
             return this.get(bearerToken, upgradeUrl);
         });
     }
@@ -23752,8 +23750,8 @@ function createComponentRow(component) {
     // JC: Abridge long lists of vulnerabilities to top 10 with an ellipsis to indicate there is more
     // This seems reasonable - the point should be made that you need to upgrade the component!
     const vulnerabilities = component.vulnerabilities.length > 10 ?
-        component.vulnerabilities.slice(0, 10).map(vulnerability => `[${vulnerability.name}](${vulnerability.href})${vulnerability.cvssScore && vulnerability.severity ? ` ${vulnerability.severity}: CVSS ${vulnerability.cvssScore}` : ''}`).join('<br/>').concat('<br/>...') :
-        component.vulnerabilities.map(vulnerability => `[${vulnerability.name}](${vulnerability.href})${vulnerability.cvssScore && vulnerability.severity ? ` ${vulnerability.severity}: CVSS ${vulnerability.cvssScore}` : ''}`).join('<br/>');
+        component.vulnerabilities.slice(0, 10).map(vulnerability => `[${vulnerability.name}](${vulnerability.href})${vulnerability.cvssScore && vulnerability.severity ? ` (${vulnerability.severity}: CVSS ${vulnerability.cvssScore})` : ''}`).join('<br/>').concat('<br/>...') :
+        component.vulnerabilities.map(vulnerability => `[${vulnerability.name}](${vulnerability.href})${vulnerability.cvssScore && vulnerability.severity ? ` (${vulnerability.severity}: CVSS ${vulnerability.cvssScore})` : ''}`).join('<br/>');
     const shortTermString = component.shortTermUpgrade ? `[${component.shortTermUpgrade.name}](${component.shortTermUpgrade.href}) (${component.shortTermUpgrade.vulnerabilityCount} known vulnerabilities)` : '';
     const longTermString = component.longTermUpgrade ? `[${component.longTermUpgrade.name}](${component.longTermUpgrade.href}) (${component.longTermUpgrade.vulnerabilityCount} known vulnerabilities)` : '';
     return `| ${violatedPolicies} | ${componentInViolation} | ${componentLicenses} | ${vulnerabilities} | ${shortTermString} | ${longTermString} |`;
