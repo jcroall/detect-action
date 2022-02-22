@@ -23616,8 +23616,6 @@ exports.createIntelligentScanReportString = exports.createRapidScanReportString 
 const blackduck_api_1 = __nccwpck_require__(1508);
 const report_1 = __nccwpck_require__(8420);
 const inputs_1 = __nccwpck_require__(2074);
-const core_1 = __nccwpck_require__(5127);
-const detect_manager_1 = __nccwpck_require__(8082);
 exports.TABLE_HEADER = '| Policies Violated | Dependency | License(s) | Vulnerabilities | Short Term Recommended Upgrade | Long Term Recommended Upgrade |\r\n' + '|-|-|-|-|-|-|\r\n';
 function createRapidScanReportString(policyViolations, policyCheckWillFail) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -23638,7 +23636,7 @@ function createRapidScanReportString(policyViolations, policyCheckWillFail) {
 }
 exports.createRapidScanReportString = createRapidScanReportString;
 function createIntelligentScanReportString(componentsUrl, projectName, projectVersion, policyCheckWillFail) {
-    var _a, _b, _c, _d, _e, _f, _g;
+    var _a, _b, _c, _d, _e;
     return __awaiter(this, void 0, void 0, function* () {
         const blackduckApiService = new blackduck_api_1.BlackduckApiService(inputs_1.BLACKDUCK_URL, inputs_1.BLACKDUCK_API_TOKEN);
         const bearerToken = yield blackduckApiService.getBearerToken();
@@ -23649,7 +23647,7 @@ function createIntelligentScanReportString(componentsUrl, projectName, projectVe
         let vulnMapByComponent = new Map();
         if (vulnerabilities) {
             for (const vulnerability of vulnerabilities) {
-                (0, core_1.info)(`${detect_manager_1.TOOL_NAME} Vulnerability in component=${vulnerability.componentName} license=${vulnerability.license.type} vuln=${vulnerability.vulnerabilityWithRemediation.vulnerabilityName} score=${vulnerability.vulnerabilityWithRemediation.overallScore} severity=${vulnerability.vulnerabilityWithRemediation.severity}`);
+                //info(`${TOOL_NAME} Vulnerability in component=${vulnerability.componentName} license=${vulnerability.license.type} vuln=${vulnerability.vulnerabilityWithRemediation.vulnerabilityName} score=${vulnerability.vulnerabilityWithRemediation.overallScore} severity=${vulnerability.vulnerabilityWithRemediation.severity}`)
                 if (!vulnMapByComponent.get(vulnerability.componentName)) {
                     vulnMapByComponent.set(vulnerability.componentName, new Array());
                 }
@@ -23664,7 +23662,7 @@ function createIntelligentScanReportString(componentsUrl, projectName, projectVe
         if (components) {
             for (const component of components) {
                 if (component.policyStatus === "IN_VIOLATION") {
-                    (0, core_1.info)(`${detect_manager_1.TOOL_NAME} componentName=${component.componentName} policyStatus=${component.policyStatus} violates policy:`);
+                    //info(`${TOOL_NAME} componentName=${component.componentName} policyStatus=${component.policyStatus} violates policy:`)
                     const componentReport = {};
                     // Set up component name and license and href
                     componentReport.name = component.componentName;
@@ -23681,7 +23679,7 @@ function createIntelligentScanReportString(componentsUrl, projectName, projectVe
                         if (link.rel === 'upgrade-guidance') {
                             const upgradeGuidanceResponse = yield blackduckApiService.getUpgradeGuidanceWithUrl(bearerToken, link.href);
                             const upgradeGuidance = upgradeGuidanceResponse.result;
-                            (0, core_1.info)(`${detect_manager_1.TOOL_NAME}   Short term=${(_e = upgradeGuidance === null || upgradeGuidance === void 0 ? void 0 : upgradeGuidance.shortTerm) === null || _e === void 0 ? void 0 : _e.versionName} Long term=${(_f = upgradeGuidance === null || upgradeGuidance === void 0 ? void 0 : upgradeGuidance.longTerm) === null || _f === void 0 ? void 0 : _f.versionName} Version=${upgradeGuidance === null || upgradeGuidance === void 0 ? void 0 : upgradeGuidance.version}`);
+                            //info(`${TOOL_NAME}   Short term=${upgradeGuidance?.shortTerm?.versionName} Long term=${upgradeGuidance?.longTerm?.versionName} Version=${upgradeGuidance?.version}`)
                             if (upgradeGuidance === null || upgradeGuidance === void 0 ? void 0 : upgradeGuidance.shortTerm) {
                                 componentReport.shortTermUpgrade = {};
                                 componentReport.shortTermUpgrade.name = upgradeGuidance.shortTerm.versionName;
@@ -23697,25 +23695,27 @@ function createIntelligentScanReportString(componentsUrl, projectName, projectVe
                         }
                     }
                     const policyRulesResponse = yield blackduckApiService.getPolicyRules(bearerToken, component._meta.href + "/policy-rules");
-                    const policyRules = (_g = policyRulesResponse === null || policyRulesResponse === void 0 ? void 0 : policyRulesResponse.result) === null || _g === void 0 ? void 0 : _g.items;
+                    const policyRules = (_e = policyRulesResponse === null || policyRulesResponse === void 0 ? void 0 : policyRulesResponse.result) === null || _e === void 0 ? void 0 : _e.items;
                     componentReport.violatedPolicies = new Array();
                     if (policyRules) {
                         for (const policyRule of policyRules) {
-                            (0, core_1.info)(`${detect_manager_1.TOOL_NAME}     name=${policyRule.name} severity=${policyRule.severity}`);
+                            //info(`${TOOL_NAME}     name=${policyRule.name} severity=${policyRule.severity}`)
                             componentReport.violatedPolicies.push(policyRule.name);
                         }
                     }
                     componentReport.vulnerabilities = new Array();
                     let vulnerabilitiesByComponent = vulnMapByComponent.get(component.componentName);
                     if (vulnerabilitiesByComponent) {
-                        (0, core_1.info)(`${detect_manager_1.TOOL_NAME}   Vulnerabilities:`);
+                        //info(`${TOOL_NAME}   Vulnerabilities:`)
                         for (const vulnerability of vulnerabilitiesByComponent) {
-                            (0, core_1.info)(`${detect_manager_1.TOOL_NAME}     vuln=${vulnerability.vulnerabilityWithRemediation.vulnerabilityName} score=${vulnerability.vulnerabilityWithRemediation.overallScore}`);
+                            //info(`${TOOL_NAME}     vuln=${vulnerability.vulnerabilityWithRemediation.vulnerabilityName} score=${vulnerability.vulnerabilityWithRemediation.overallScore}`)
                             var componentVulnerability = {};
                             componentVulnerability.name = vulnerability.vulnerabilityWithRemediation.vulnerabilityName;
                             componentVulnerability.violatesPolicy = true; // We don't actually know if an intelligent scan component
                             // violates policy
-                            componentVulnerability.href = vulnerability._meta.href;
+                            //componentVulnerability.href = vulnerability._meta.href
+                            //api/vulnerabilities/BDSA-2021-3401/overview
+                            componentVulnerability.href = inputs_1.BLACKDUCK_URL + `/api/vulnerabilities/${componentVulnerability.name}/overview`;
                             componentVulnerability.cvssScore = vulnerability.vulnerabilityWithRemediation.overallScore;
                             componentVulnerability.severity = vulnerability.vulnerabilityWithRemediation.severity;
                             componentReport.vulnerabilities.push(componentVulnerability);
@@ -23733,21 +23733,6 @@ function createIntelligentScanReportString(componentsUrl, projectName, projectVe
             const violationSymbol = policyCheckWillFail ? ':x:' : ':warning:';
             message = message.concat(`# ${violationSymbol} Found dependencies violating policy!\r\n\r\n`);
             const tableBody = componentReports.map(componentReport => createComponentRow(componentReport)).join('\r\n');
-            /*
-                let tableBody = ''
-                for (const componentReport of componentReports) {
-                  info(`${TOOL_NAME} component=${componentReport.name}`)
-            
-                  if (componentReport.vulnerabilities == undefined) {
-                    info(`${TOOL_NAME} vulnerabilities is undefined`)
-                  }
-                  if (componentReport.licenses == undefined) {
-                    info(`${TOOL_NAME} licenses is undefined`)
-                  }
-            
-                  tableBody += createComponentRow(componentReport) + '\r\n'
-                }
-              */
             const reportTable = exports.TABLE_HEADER.concat(tableBody);
             message = message.concat(reportTable);
         }
@@ -23764,7 +23749,11 @@ function createComponentRow(component) {
     const violatedPolicies = component.violatedPolicies.join('<br/>');
     const componentInViolation = (component === null || component === void 0 ? void 0 : component.href) ? `[${component.name}](${component.href})` : component.name;
     const componentLicenses = component.licenses.map(license => `[${license.name}](${license.href})`).join('<br/>');
-    const vulnerabilities = component.vulnerabilities.map(vulnerability => `[${vulnerability.name}](${vulnerability.href})${vulnerability.cvssScore && vulnerability.severity ? ` ${vulnerability.severity}: CVSS ${vulnerability.cvssScore}` : ''}`).join('<br/>');
+    // JC: Abridge long lists of vulnerabilities to top 10 with an ellipsis to indicate there is more
+    // This seems reasonable - the point should be made that you need to upgrade the component!
+    const vulnerabilities = component.vulnerabilities.length > 10 ?
+        component.vulnerabilities.slice(0, 10).map(vulnerability => `[${vulnerability.name}](${vulnerability.href})${vulnerability.cvssScore && vulnerability.severity ? ` ${vulnerability.severity}: CVSS ${vulnerability.cvssScore}` : ''}`).join('<br/>').concat('<br/>...') :
+        component.vulnerabilities.map(vulnerability => `[${vulnerability.name}](${vulnerability.href})${vulnerability.cvssScore && vulnerability.severity ? ` ${vulnerability.severity}: CVSS ${vulnerability.cvssScore}` : ''}`).join('<br/>');
     const shortTermString = component.shortTermUpgrade ? `[${component.shortTermUpgrade.name}](${component.shortTermUpgrade.href}) (${component.shortTermUpgrade.vulnerabilityCount} known vulnerabilities)` : '';
     const longTermString = component.longTermUpgrade ? `[${component.longTermUpgrade.name}](${component.longTermUpgrade.href}) (${component.longTermUpgrade.vulnerabilityCount} known vulnerabilities)` : '';
     return `| ${violatedPolicies} | ${componentInViolation} | ${componentLicenses} | ${vulnerabilities} | ${shortTermString} | ${longTermString} |`;
